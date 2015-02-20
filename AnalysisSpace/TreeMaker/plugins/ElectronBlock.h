@@ -30,6 +30,7 @@ private:
   virtual void beginJob();
   virtual void beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {}
   virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup);
+  void calcIsoFromPF(double cone, edm::Handle<pat::PackedCandidateCollection>& pfs, const pat::Electron& v, std::vector<double>& iso);     
   virtual void endJob() {}
 
 public:
@@ -50,9 +51,11 @@ private:
   const edm::InputTag bsTag_;
   const edm::InputTag vertexTag_;
   const edm::InputTag electronTag_;
+  const edm::InputTag pfcandTag_;
 
   const edm::EDGetTokenT<reco::BeamSpot> bsToken_;
   const edm::EDGetTokenT<reco::VertexCollection> vertexToken_;
   const edm::EDGetTokenT<pat::ElectronCollection> electronToken_;
+  const edm::EDGetTokenT<pat::PackedCandidateCollection> pfToken_;
 };
 #endif

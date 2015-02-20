@@ -42,7 +42,7 @@ class PhotonBlock : public edm::EDAnalyzer
   int fnPhoton_;
 
   int verbosity_;
-  edm::InputTag photonTag_;
+  const edm::InputTag photonTag_;
   const edm::EDGetTokenT<pat::PhotonCollection> photonToken_;
 };
 #endif

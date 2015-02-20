@@ -1,7 +1,8 @@
 #include "AnalysisSpace/TreeMaker/interface/PhysicsObjects.h"
 
 #include <vector>
-
+#include<map>
+#include<string>
 namespace {
   struct dictionary {
     vhtm::Event rv1;
@@ -35,5 +36,6 @@ namespace {
     std::vector<vhtm::Photon> vrvf;
     std::vector<double> vrvg;
     std::map<double, std::vector<double> > vrvm;
+    std::map< std::string, std::vector<double> > vrvn;
   };
 }

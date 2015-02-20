@@ -89,7 +89,9 @@ void JetBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
       jobj.combinedInclusiveSecondaryVertexBTag 
                                             = jet.bDiscriminator("combinedInclusiveSecondaryVertexBJetTags");
       //jobj.combinedMVABTag                  = jet.bDiscriminator("combinedMVABJetTags");
-
+      //added for 720
+      jobj.combinedInclusiveSecondaryVertexV2BJetTags = jet.bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags");
+       
       jobj.passLooseID = passjetLoose;
       jobj.passTightID = passjetTight;
 

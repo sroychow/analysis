@@ -42,6 +42,13 @@ private:
   const edm::InputTag puSummaryTag_;
   const edm::InputTag rhoTag_;
   const edm::InputTag rhoNeutralTag_;
+  const edm::InputTag fixedGridRhoAllTag_;
+  const edm::InputTag fixedGridRhoFastjetAllTag_;
+  const edm::InputTag fixedGridRhoFastjetAllCaloTag_;
+  const edm::InputTag fixedGridRhoFastjetCentralCaloTag_;
+  const edm::InputTag fixedGridRhoFastjetCentralChargedPileUpTag_;
+  const edm::InputTag fixedGridRhoFastjetCentralNeutralTag_;
+  
 
   const unsigned int vtxMinNDOF_;
   const double vtxMaxAbsZ_;
@@ -56,5 +63,11 @@ private:
   const edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puSummaryToken_;
   const edm::EDGetTokenT<double> rhoToken_;
   const edm::EDGetTokenT<double> rhoNeutralToken_;
+  const edm::EDGetTokenT<double> fixedGridRhoAllToken_;
+  const edm::EDGetTokenT<double> fixedGridRhoFastjetAllToken_;
+  const edm::EDGetTokenT<double> fixedGridRhoFastjetAllCaloToken_;
+  const edm::EDGetTokenT<double> fixedGridRhoFastjetCentralCaloToken_;
+  const edm::EDGetTokenT<double> fixedGridRhoFastjetCentralChargedPileUpToken_;
+  const edm::EDGetTokenT<double> fixedGridRhoFastjetCentralNeutralToken_;
 };
 #endif

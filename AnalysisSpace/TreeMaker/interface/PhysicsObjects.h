@@ -45,10 +45,16 @@ namespace vhtm {
     double rhoNeutral;
     int nvtx; 
 
+    double fGridRhoAll;
+    double fGridRhoFastjetAll;
+    double fGridRhoFastjetAllCalo;
+    double fGridRhoFastjetCentralCalo;
+    double fGridRhoFastjetCentralChargedPileUp;
+    double fGridRhoFastjetCentralNeutral;
     std::vector<int> nPU;
     std::vector<int> bunchCrossing;
     std::vector<int> trueNInt;
-  
+
     ClassDef(Event,1)
   };
   class GenEvent: public TObject {
@@ -121,6 +127,11 @@ namespace vhtm {
     int missingHits;
 
     double dB;
+    double edB;    
+
+    double dB3D;
+    double edB3D;    
+
     int nBrems;
     float fbrem;
   
@@ -130,6 +141,8 @@ namespace vhtm {
     int fidFlag;
     std::map<std::string, float> idmap;
     int selbit;
+
+    std::map< std::string,std::vector<double> > isolationMap;
 
     ClassDef(Electron, 1)
   };
@@ -272,6 +285,7 @@ namespace vhtm {
   public:
     Muon();
     ~Muon() {}
+    bool isGlobalMuon;
     bool isTrackerMuon;
     bool isPFMuon;
     double eta;
@@ -286,6 +300,8 @@ namespace vhtm {
     double trkDz;
 
     double globalChi2;
+    double tkNChi2;
+
     float trkIso;
     float ecalIso;
     float hcalIso;
@@ -313,8 +329,12 @@ namespace vhtm {
     double vy;
     double vz;
 
-    double dB; // PV2D
+    double dB;//2D
+    double edB;    
   
+    double dB3D;
+    double edB3D;    
+
     // UW Recommendation
     bool isGlobalMuonPromptTight;
     bool isAllArbitrated;
@@ -329,7 +349,7 @@ namespace vhtm {
     bool muonID;
 
     int selbit;
-    std::map< double,std::vector<double> > isolationMap;
+    std::map< std::string,std::vector<double> > isolationMap;
     ClassDef(Muon, 1)
 //    ClassDef(Muon, 2)
   };
@@ -370,6 +390,7 @@ namespace vhtm {
     float combinedSecondaryVertexBTag;
     //double combinedSecondaryVertexMVABTag;
     float combinedInclusiveSecondaryVertexBTag;
+    float combinedInclusiveSecondaryVertexV2BJetTags;
     //double combinedMVABTag;
     std::map<std::string, float> discrimap;
 
@@ -477,6 +498,7 @@ namespace vhtm {
     bool isEBEEGap;
     int fidFlag;
     
+    bool passElectronVeto;
     bool hasPixelSeed;
     double ecalIso;
     double hcalIso;

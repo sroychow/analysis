@@ -20,7 +20,7 @@
 // Constructor
 PhotonBlock::PhotonBlock(const edm::ParameterSet& iConfig) :
   verbosity_(iConfig.getUntrackedParameter<int>("verbosity", 0)),
-  photonTag_(iConfig.getParameter<edm::InputTag>("photonSrc")),
+  photonTag_(iConfig.getUntrackedParameter<edm::InputTag>("photonSrc")),
   photonToken_(consumes<pat::PhotonCollection>(photonTag_))
 {}
 void PhotonBlock::beginJob() 
@@ -61,6 +61,7 @@ void PhotonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       photon.vz     = v.vz();
 
       const reco::SuperClusterRef sCluster = v.superCluster(); 
+      //if( !sCluster ) {
       photon.scEnergy    = sCluster->energy();
       photon.scEta       = sCluster->eta();
       photon.scPhi       = sCluster->phi();
@@ -72,6 +73,7 @@ void PhotonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       photon.scx         = sCluster->x();
       photon.scy         = sCluster->y();
       photon.scz         = sCluster->z();
+     // }
 
       photon.isoEcalRecHit03    = v.ecalRecHitSumEtConeDR03();
       photon.isoHcalRecHit03    = v.hcalTowerSumEtConeDR03();
@@ -124,9 +126,13 @@ void PhotonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       photon.r2x5               = v.r2x5();
       photon.maxEnergyXtal      = v.maxEnergyXtal();
 
+
       photon.hasConversionTracks = v.hasConversionTracks();      
+      photon.passElectronVeto = v.passElectronVeto();
+/*
       if (v.hasConversionTracks()) {
         const reco::ConversionRefVector conversions = v.conversions();
+        if( !conversions.empty()  ) { 
         for (edm::RefVector<reco::ConversionCollection>::const_iterator jt  = conversions.begin();
                                                                         jt != conversions.end(); 
                                                                       ++jt) 
@@ -157,7 +163,9 @@ void PhotonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 	  photon.dPhiTracksAtEcal  = obj.dPhiTracksAtEcal();
 	  photon.dEtaTracksAtEcal  = obj.dEtaTracksAtEcal();
         }    
+        }
       }
+*/
       list_->push_back(photon);
     }
     fnPhoton_ = list_->size();

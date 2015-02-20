@@ -6,6 +6,7 @@ from AnalysisSpace.TreeMaker.VertexBlock_cfi import vertexBlock
 #from AnalysisSpace.TreeMaker.GenJetBlock_cfi import genJetBlock
 from AnalysisSpace.TreeMaker.JetBlock_cfi import jetBlock
 from AnalysisSpace.TreeMaker.ElectronBlock_cfi import electronBlock
+from AnalysisSpace.TreeMaker.PhotonBlock_cfi import photonBlock
 from AnalysisSpace.TreeMaker.METBlock_cfi import metBlock
 #from AnalysisSpace.TreeMaker.GenMETBlock_cfi import genMETBlock
 from AnalysisSpace.TreeMaker.MuonBlock_cfi import muonBlock
@@ -24,6 +25,7 @@ treeContentSequence = cms.Sequence(
 # + genJetBlock
 # + genMETBlock
  + electronBlock
+ + photonBlock
  + muonBlock
  + tauBlock
  + metBlock

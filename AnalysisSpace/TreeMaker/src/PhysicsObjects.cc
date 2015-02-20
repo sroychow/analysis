@@ -24,7 +24,13 @@ vhtm::Event::Event():
   //isBeamScraping(false),
   rho(-1),
   rhoNeutral(-1),
-  nvtx(0)
+  nvtx(0),
+  fGridRhoAll(-1),
+  fGridRhoFastjetAll(-1),
+  fGridRhoFastjetAllCalo(-1),
+  fGridRhoFastjetCentralCalo(-1),
+  fGridRhoFastjetCentralChargedPileUp(-1),
+  fGridRhoFastjetCentralNeutral(-1)
 {
   nPU.clear();
   bunchCrossing.clear();
@@ -82,6 +88,9 @@ vhtm::Electron::Electron():
   sumPUPt(-999),
   missingHits(-1),
   dB(-999),
+  edB(-999),
+  dB3D(-999),
+  edB3D(-999),
   nBrems(-1),
   fbrem(-999),
   hasMatchedConv(false),
@@ -198,6 +207,7 @@ vhtm::Tau::Tau():
   isoGammaList.clear();
 }
 vhtm::Muon::Muon():
+  isGlobalMuon(false),
   isTrackerMuon(false),
   isPFMuon(false),
   eta(-999),
@@ -208,7 +218,8 @@ vhtm::Muon::Muon():
   charge(-999),
   trkD0(-999),
   trkDz(-999),
-  globalChi2(-999),
+  globalChi2(9999.),
+  tkNChi2(9999.),
   trkIso(-999),
   ecalIso(-999),
   hcalIso(-999),
@@ -234,6 +245,9 @@ vhtm::Muon::Muon():
   vy(-999),
   vz(-999),
   dB(-999),
+  edB(-999),
+  dB3D(-999),
+  edB3D(-999),
   isGlobalMuonPromptTight(false),
   isAllArbitrated(false),
   nChambers(-1),
@@ -293,7 +307,7 @@ vhtm::Vertex::Vertex():
   yErr(-999),
   zErr(-999),
   rho(-999),
-  chi2(-999),
+  chi2(999.),
   ndf(-1),
   //ntracks(-1),
   //ntracksw05(-1),
@@ -350,6 +364,7 @@ vhtm::Photon::Photon():
   isEEGap(false),
   isEBEEGap(false),
   fidFlag(0),
+  passElectronVeto(false),
   hasPixelSeed(false),
   ecalIso(-9999),
   hcalIso(-999),

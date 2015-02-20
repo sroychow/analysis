@@ -71,12 +71,9 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	edm::LogInfo("MuonBlock") << "Too many PAT Muons, fnMuon = " << list_->size();
 	break;
       }
-      // consider only global muons
-      if (!v.isGlobalMuon()) continue;
-      reco::TrackRef tk  = v.innerTrack(); // tracker segment only
-      reco::TrackRef gtk = v.globalTrack();
 
       vhtm::Muon muon;
+      muon.isGlobalMuon  = v.isGlobalMuon() ? true : false;
       muon.isTrackerMuon = v.isTrackerMuon() ? true : false;
       muon.isPFMuon      = v.isPFMuon();
 
@@ -86,22 +83,35 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       muon.p       = v.p();
       muon.energy  = v.energy();
       muon.charge  = v.charge();
+      
+      bool hasTkinRef = v.innerTrack().isNonnull();
+      
+      reco::TrackRef tk;       
+      if( hasTkinRef ) {
+        tk  = v.innerTrack(); // tracker segment only
+        muon.tkNChi2 = tk->normalizedChi2(); 
+        double trkd0 = tk->d0();
+        double trkdz = tk->dz();
 
-      double trkd0 = tk->d0();
-      double trkdz = tk->dz();
-      if (bsCorr_) {
-        if (beamSpot.isValid()) {
-          trkd0 = -(tk->dxy(beamSpot->position()));
-          trkdz = tk->dz(beamSpot->position());
-        }
-        else
-          edm::LogError("MuonsBlock") << "Error >> Failed to get reco::BeamSpot for label: "
-                                      << bsTag_;
-      }
-      muon.trkD0      = trkd0;
-      muon.trkDz      = trkdz;
-      muon.globalChi2 = v.normChi2();
+        if (bsCorr_) {
+          if (beamSpot.isValid()) {
+            trkd0 = -(tk->dxy(beamSpot->position()));
+            trkdz = tk->dz(beamSpot->position());
+          }
+          else
+            edm::LogError("MuonsBlock") << "Error >> Failed to get reco::BeamSpot for label: "
+                                        << bsTag_;
+          }
+      
+        muon.trkD0      = trkd0;
+        muon.trkDz      = trkdz;
+      }  
+      
+
+      muon.globalChi2 = v.isGlobalMuon() ? v.normChi2() : 9999.;
+     
       muon.passID     = v.muonID(muonID_) ? true : false;
+
 
       double dxyWrtPV = -99.;
       double dzWrtPV = -99.;
@@ -109,25 +119,36 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         edm::LogInfo("MuonBlock") << "Total # Primary Vertices: " << primaryVertices->size();
 
         const reco::Vertex& vit = primaryVertices->front(); // Highest sumPt vertex
-        dxyWrtPV = tk->dxy(vit.position());
-        dzWrtPV  = tk->dz(vit.position());
+
+
+        if( hasTkinRef ) {
+          dxyWrtPV = tk->dxy(vit.position());
+          dzWrtPV  = tk->dz(vit.position());
+        }
         muon.dxyPV = dxyWrtPV;
         muon.dzPV  = dzWrtPV;
 
+
         // Vertex association
         double minVtxDist3D = 9999.;
-           int indexVtx = -1;
+        int indexVtx = -1;
         double vertexDistZ = 9999.;
         for (auto vit = primaryVertices->begin(); vit != primaryVertices->end(); ++vit) {
-          double dxy = tk->dxy(vit->position());
-          double dz = tk->dz(vit->position());
-          double dist3D = std::sqrt(pow(dxy,2) + pow(dz,2));
-          if (dist3D < minVtxDist3D) {
-            minVtxDist3D = dist3D;
-            indexVtx = static_cast<int>(std::distance(primaryVertices->begin(), vit));
-            vertexDistZ = dz;
+          
+          double dxy = 9999.;
+          double dz = 9999.;
+          if( hasTkinRef ) {
+            dxy = tk->dxy(vit->position());
+            dz = tk->dz(vit->position());
+            double dist3D = std::sqrt(pow(dxy,2) + pow(dz,2));
+            if (dist3D < minVtxDist3D) {
+              minVtxDist3D = dist3D;
+              indexVtx = static_cast<int>(std::distance(primaryVertices->begin(), vit));
+              vertexDistZ = dz;
+            }
           }
         }
+
         muon.vtxDist3D = minVtxDist3D;
         muon.vtxIndex = indexVtx;
         muon.vtxDistZ = vertexDistZ;
@@ -136,13 +157,19 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         edm::LogError("MuonBlock") << "Error >> Failed to get reco::VertexCollection for label: "
                                    << vertexTag_;
       }
+
       // Hit pattern
-      const reco::HitPattern& hitp = gtk->hitPattern(); // innerTrack will not provide Muon Hits
-      muon.pixHits = hitp.numberOfValidPixelHits();
-      muon.trkHits = hitp.numberOfValidTrackerHits();
-      muon.muoHits = hitp.numberOfValidMuonHits();
-      muon.matches = v.numberOfMatches();
-      muon.trackerLayersWithMeasurement = hitp.trackerLayersWithMeasurement();
+        if( hasTkinRef ) {
+          bool hasTkgRef = v.globalTrack().isNonnull();
+          //if( hasTkgRef )
+          //  reco::TrackRef gtk = v.globalTrack();
+          const reco::HitPattern& hitp = hasTkgRef ? v.globalTrack()->hitPattern() : tk->hitPattern(); // innerTrack will not provide Muon Hits
+          muon.pixHits = hitp.numberOfValidPixelHits();
+          muon.trkHits = hitp.numberOfValidTrackerHits();
+          muon.muoHits = hitp.numberOfValidMuonHits();
+          muon.matches = v.numberOfMatches();
+          muon.trackerLayersWithMeasurement = hitp.trackerLayersWithMeasurement();
+        }
 
       int numMuonStations = 0;
       unsigned int stationMask = static_cast<unsigned int>(v.stationMask(reco::Muon::SegmentAndTrackArbitration));
@@ -172,7 +199,10 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
       // IP information
       muon.dB = v.dB(pat::Muon::PV2D);
+      muon.edB = v.edB(pat::Muon::PV2D);
 
+      muon.dB3D = v.dB(pat::Muon::PV3D);
+      muon.edB3D = v.edB(pat::Muon::PV3D);
       // UW recommendation
       muon.isGlobalMuonPromptTight = muon::isGoodMuon(v, muon::GlobalMuonPromptTight);
       muon.isAllArbitrated         = muon::isGoodMuon(v, muon::AllArbitrated);
@@ -183,9 +213,9 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       muon.stationGapMaskDistance  = v.stationGapMaskDistance();
       muon.stationGapMaskPull      = v.stationGapMaskPull();
 
-      double normalizeChi2 = v.globalTrack()->normalizedChi2();
-      double ptError = v.innerTrack()->ptError()/v.innerTrack()->pt();
-
+ //     double normalizeChi2 = v.globalTrack()->normalizedChi2();
+ //     double ptError = v.innerTrack()->ptError()/v.innerTrack()->pt();
+      double ptError = 0.05,normalizeChi2 = 5;
       bool muonID = v.isGlobalMuon() && 
 	v.isTrackerMuon() && 
 	muon.isGlobalMuonPromptTight && 
@@ -206,14 +236,42 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       muon.vy = vertex.y();
       muon.vz = vertex.z();
 
+
        //Isolation from packed PF candidates 
      
       std::vector<double> isotemp;
-      for( double cone=0.15;cone<=0.4;cone+=0.05){
-       isotemp.clear(); 
-       calcIsoFromPF(cone, pfs, v, isotemp);
-       muon.isolationMap[cone] = isotemp;
-      }
+//      for( double cone=0.15;cone<=0.45;cone+=0.05){
+//       isotemp.clear(); 
+//       calcIsoFromPF(cone, pfs, v, isotemp);
+//       muon.isolationMap[cone] = isotemp;
+//      }
+      calcIsoFromPF(0.15, pfs, v, isotemp);
+      muon.isolationMap["c15"] = isotemp;
+
+      isotemp.clear();
+      calcIsoFromPF(0.20, pfs, v, isotemp);
+      muon.isolationMap["c20"] = isotemp;
+
+      isotemp.clear();
+      calcIsoFromPF(0.25, pfs, v, isotemp);
+      muon.isolationMap["c25"] = isotemp;
+
+      isotemp.clear();
+      calcIsoFromPF(0.30, pfs, v, isotemp);
+      muon.isolationMap["c30"] = isotemp;
+
+      isotemp.clear();
+      calcIsoFromPF(0.35, pfs, v, isotemp);
+      muon.isolationMap["c35"] = isotemp;
+
+      isotemp.clear();
+      calcIsoFromPF(0.40, pfs, v, isotemp);
+      muon.isolationMap["c40"] = isotemp;
+
+      isotemp.clear();
+      calcIsoFromPF(0.45, pfs, v, isotemp);
+      muon.isolationMap["c45"] = isotemp;
+
       list_->push_back(muon);
     }
     fnMuon_ = list_->size();

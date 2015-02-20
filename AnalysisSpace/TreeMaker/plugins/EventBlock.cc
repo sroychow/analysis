@@ -20,6 +20,12 @@ EventBlock::EventBlock(const edm::ParameterSet& iConfig):
   puSummaryTag_(iConfig.getUntrackedParameter<edm::InputTag>("puSummaryTag", edm::InputTag("addPileupInfo"))),
   rhoTag_(iConfig.getUntrackedParameter<edm::InputTag>("rhoTag", edm::InputTag("kt6PFJets","rho"))),
   rhoNeutralTag_(iConfig.getUntrackedParameter<edm::InputTag>("rhoNeutralTag", edm::InputTag("kt6PFNeutralJetsForVtxMultReweighting", "rho"))),
+  fixedGridRhoAllTag_(iConfig.getUntrackedParameter<edm::InputTag>("fixedGridRhoAllTag",edm::InputTag("fixedGridRhoAll"))),
+  fixedGridRhoFastjetAllTag_(iConfig.getUntrackedParameter<edm::InputTag>("fixedGridRhoFastjetAllTag",edm::InputTag("fixedGridRhoFastjetAll"))),
+  fixedGridRhoFastjetAllCaloTag_(iConfig.getUntrackedParameter<edm::InputTag>("fixedGridRhoFastjetAllCaloTag",edm::InputTag("fixedGridRhoFastjetAllCalo"))),
+  fixedGridRhoFastjetCentralCaloTag_(iConfig.getUntrackedParameter<edm::InputTag>("fixedGridRhoFastjetCentralCaloTag",edm::InputTag("fixedGridRhoFastjetCentralCalo"))),
+  fixedGridRhoFastjetCentralChargedPileUpTag_(iConfig.getUntrackedParameter<edm::InputTag>("fixedGridRhoFastjetCentralChargedPileUpTag",edm::InputTag("fixedGridRhoFastjetCentralChargedPileUp"))),
+  fixedGridRhoFastjetCentralNeutralTag_(iConfig.getUntrackedParameter<edm::InputTag>("fixedGridRhoFastjetCentralNeutralTag",edm::InputTag("fixedGridRhoFastjetCentralNeutral"))),
   vtxMinNDOF_(iConfig.getUntrackedParameter<unsigned int>("vertexMinimumNDOF", 4)),
   vtxMaxAbsZ_(iConfig.getUntrackedParameter<double>("vertexMaxAbsZ", 24.)),
   vtxMaxd0_(iConfig.getUntrackedParameter<double>("vertexMaxd0", 2.0)),
@@ -31,7 +37,13 @@ EventBlock::EventBlock(const edm::ParameterSet& iConfig):
   selectedVertexToken_(consumes<reco::VertexCollection>(selectedVertexTag_)),
   puSummaryToken_(consumes<std::vector<PileupSummaryInfo> >(puSummaryTag_)),
   rhoToken_(consumes<double>(rhoTag_)),
-  rhoNeutralToken_(consumes<double>(rhoNeutralTag_))
+  rhoNeutralToken_(consumes<double>(rhoNeutralTag_)),
+  fixedGridRhoAllToken_(consumes<double>(fixedGridRhoAllTag_)),
+  fixedGridRhoFastjetAllToken_(consumes<double>(fixedGridRhoFastjetAllTag_)),
+  fixedGridRhoFastjetAllCaloToken_(consumes<double>(fixedGridRhoFastjetAllCaloTag_)),
+  fixedGridRhoFastjetCentralCaloToken_(consumes<double>(fixedGridRhoFastjetCentralCaloTag_)),
+  fixedGridRhoFastjetCentralChargedPileUpToken_(consumes<double>(fixedGridRhoFastjetCentralChargedPileUpTag_)),
+  fixedGridRhoFastjetCentralNeutralToken_(consumes<double>(fixedGridRhoFastjetCentralNeutralTag_))  
 {
 }
 EventBlock::~EventBlock() {
@@ -81,6 +93,33 @@ void EventBlock::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
  
   edm::Handle<L1GlobalTriggerReadoutRecord> l1GtReadoutRecord;
   bool found = iEvent.getByToken(l1Token_, l1GtReadoutRecord);
+  //Rho Part
+  edm::Handle<double> fixedGridRhoAll;
+  iEvent.getByToken(fixedGridRhoAllToken_,fixedGridRhoAll);
+  ev.fGridRhoAll = *fixedGridRhoAll;
+  edm::Handle<double> fixedGridRhoFastjetAll;
+  iEvent.getByToken(fixedGridRhoFastjetAllToken_,fixedGridRhoFastjetAll);
+  ev.fGridRhoFastjetAll = *fixedGridRhoFastjetAll;
+  edm::Handle<double> fixedGridRhoFastjetAllCalo;
+  iEvent.getByToken(fixedGridRhoFastjetAllCaloToken_,fixedGridRhoFastjetAllCalo);
+  ev.fGridRhoFastjetAllCalo = *fixedGridRhoFastjetAllCalo;
+  edm::Handle<double> fixedGridRhoFastjetCentralCalo;
+  iEvent.getByToken(fixedGridRhoFastjetCentralCaloToken_,fixedGridRhoFastjetCentralCalo);
+  ev.fGridRhoFastjetCentralCalo = *fixedGridRhoFastjetCentralCalo;
+  edm::Handle<double> fixedGridRhoFastjetCentralChargedPileUp;
+  iEvent.getByToken(fixedGridRhoFastjetCentralChargedPileUpToken_,fixedGridRhoFastjetCentralChargedPileUp);
+  ev.fGridRhoFastjetCentralChargedPileUp = *fixedGridRhoFastjetCentralChargedPileUp;
+  edm::Handle<double> fixedGridRhoFastjetCentralNeutral;
+  iEvent.getByToken(fixedGridRhoFastjetCentralNeutralToken_,fixedGridRhoFastjetCentralNeutral);
+  ev.fGridRhoFastjetCentralNeutral = *fixedGridRhoFastjetCentralNeutral;
+  //
+
+
+
+
+
+
+
 
   // Technical Trigger Part
   if (found && l1GtReadoutRecord.isValid()) {
