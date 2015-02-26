@@ -39,7 +39,7 @@
     <version ClassVersion="1" checksum="3208282312" />
   </class>
   <class name="vhtm::Photon" ClassVersion="1">
-    <version ClassVersion="1" checksum="934085531" />
+    <version ClassVersion="1" checksum="61544836" />
   </class>
   <class name="std::vector<vhtm::Electron>" persistent="true" />
   <class name="std::vector<vhtm::Muon>" persistent="true" />

@@ -107,7 +107,7 @@ namespace vhtm {
     double scPhi;
     double scET;
     double scRawEnergy;
-  
+    float BDT;  
     // Vertex association variables
     double dxyPV;
     double dzPV;
@@ -122,6 +122,8 @@ namespace vhtm {
     float photonIso;
 
     float sumChargedHadronPt;
+    float sumNeutralHadronEt;
+    float sumPhotonEt;
     float sumPUPt;
 
     int missingHits;
@@ -307,6 +309,8 @@ namespace vhtm {
     float hcalIso;
     float hoIso;
     float pfChargedIsoR03;
+    float pfNeutralHadIsoR03;
+    float pfPhotonIso03;    
     float sumPUPt03;
     float pfRelIso03;
     float pfChargedIsoR04;
@@ -539,6 +543,8 @@ namespace vhtm {
     
     int selbit;
   
+    std::map< std::string,std::vector<double> > isolationMap;
+
     ClassDef(Photon, 1)
   };
 }

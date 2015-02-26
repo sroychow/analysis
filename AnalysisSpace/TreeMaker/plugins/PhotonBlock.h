@@ -28,6 +28,7 @@ class PhotonBlock : public edm::EDAnalyzer
   virtual void beginJob();
   virtual void beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {}
   virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup);
+  void calcIsoFromPF(double cone, edm::Handle<pat::PackedCandidateCollection>& pfs, const pat::Photon& v, std::vector<double>& iso);
   virtual void endJob() {}
 
  public:
@@ -43,6 +44,8 @@ class PhotonBlock : public edm::EDAnalyzer
 
   int verbosity_;
   const edm::InputTag photonTag_;
+  const edm::InputTag pfcandTag_;
   const edm::EDGetTokenT<pat::PhotonCollection> photonToken_;
+  const edm::EDGetTokenT<pat::PackedCandidateCollection> pfToken_;
 };
 #endif

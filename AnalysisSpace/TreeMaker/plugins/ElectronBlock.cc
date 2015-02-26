@@ -1,4 +1,4 @@
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
 #include "TFile.h"
@@ -26,6 +26,7 @@ ElectronBlock::ElectronBlock(const edm::ParameterSet& iConfig):
   vertexTag_(iConfig.getUntrackedParameter<edm::InputTag>("vertexSrc", edm::InputTag("goodOfflinePrimaryVertices"))),
   electronTag_(iConfig.getUntrackedParameter<edm::InputTag>("electronSrc", edm::InputTag("selectedPatElectrons"))),
   pfcandTag_(iConfig.getUntrackedParameter<edm::InputTag>("pfCands",edm::InputTag("packedPFCandidates"))),
+  MVAidCollection_(iConfig.getParameter<edm::InputTag>("MVAId")),
   bsToken_(consumes<reco::BeamSpot>(bsTag_)),
   vertexToken_(consumes<reco::VertexCollection>(vertexTag_)),
   electronToken_(consumes<pat::ElectronCollection>(electronTag_)),
@@ -42,6 +43,22 @@ void ElectronBlock::beginJob()
   list_ = new std::vector<vhtm::Electron>();
   tree->Branch("Electron", "std::vector<vhtm::Electron>", &list_, 32000, 2);
   tree->Branch("nElectron", &fnElectron_, "fnElectron_/I");
+  //Electron MVA part
+  std::vector<std::string> myManualCatWeigths;
+  myManualCatWeigths.push_back("EgammaAnalysis/ElectronTools/data/CSA14/TrigIDMVA_50ns_EB_BDT.weights.xml");
+  myManualCatWeigths.push_back("EgammaAnalysis/ElectronTools/data/CSA14/TrigIDMVA_50ns_EE_BDT.weights.xml"); 
+  vector<string> myManualCatWeigthsTrig;
+  string the_path;
+  for (unsigned i = 0 ; i < myManualCatWeigths.size() ; i++){
+    the_path = edm::FileInPath ( myManualCatWeigths[i] ).fullPath();
+    myManualCatWeigthsTrig.push_back(the_path);
+  }
+
+  myMVATrig = new EGammaMvaEleEstimatorCSA14();
+  myMVATrig->initialize("BDT",
+                         EGammaMvaEleEstimatorCSA14::kTrig,
+                         true,
+                         myManualCatWeigthsTrig);
 }
 void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and the nObj variables
@@ -164,12 +181,17 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       electron.scET  = v.superCluster()->energy()/cosh(v.superCluster()->eta());
       electron.scRawEnergy = v.superCluster()->rawEnergy();
 
+//      electron.BDT=v.electronID("mvaNonTrigV0");
+      electron.BDT = myMVATrig->mvaValue(v,false); 
+  
       electron.relIso = (v.trackIso() + v.ecalIso() + v.hcalIso())/v.pt();
 
       // PF Isolation
       reco::GsfElectron::PflowIsolationVariables pfIso = v.pfIsolationVariables();
       electron.sumChargedHadronPt = pfIso.sumChargedHadronPt;
       electron.sumPUPt = pfIso.sumPUPt;
+      electron.sumNeutralHadronEt = pfIso.sumNeutralHadronEt ;
+      electron.sumPhotonEt = pfIso.sumPhotonEt;
       float absiso = pfIso.sumChargedHadronPt + std::max(0.0, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - 0.5 * pfIso.sumPUPt);
       float iso = absiso/(v.p4().pt());
       electron.pfRelIso = iso;

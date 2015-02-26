@@ -25,6 +25,8 @@
 <use name="RecoTauTag/RecoTau" />
 <use name="RecoMET/METAlgorithms" />
 <use name="RecoMuon/MuonIsolation" />
+<use name="EgammaAnalysis/ElectronTools" />
+<use name="RecoEgamma/ElectronIdentification" />
 <export>
   <lib name="1"/>
 </export>

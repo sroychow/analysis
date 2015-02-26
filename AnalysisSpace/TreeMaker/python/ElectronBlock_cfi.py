@@ -5,5 +5,6 @@ electronBlock = cms.EDAnalyzer("ElectronBlock",
   beamSpotCorr = cms.untracked.bool(True),
   offlineBeamSpot = cms.untracked.InputTag('offlineBeamSpot'),
   vertexSrc = cms.untracked.InputTag('offlineSlimmedPrimaryVertices'),
-  electronSrc = cms.untracked.InputTag('slimmedElectrons')
+  electronSrc = cms.untracked.InputTag('slimmedElectrons'),
+  MVAId = cms.InputTag("mvaTrigV050nsCSA14","","addMVAid")
 )

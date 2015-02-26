@@ -13,6 +13,7 @@
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
 #include "DataFormats/EgammaCandidates/interface/Conversion.h"
 #include "DataFormats/EgammaCandidates/interface/ConversionFwd.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
 #include "AnalysisSpace/TreeMaker/plugins/PhotonBlock.h"
 #include "AnalysisSpace/TreeMaker/interface/Utility.h"
@@ -21,7 +22,9 @@
 PhotonBlock::PhotonBlock(const edm::ParameterSet& iConfig) :
   verbosity_(iConfig.getUntrackedParameter<int>("verbosity", 0)),
   photonTag_(iConfig.getUntrackedParameter<edm::InputTag>("photonSrc")),
-  photonToken_(consumes<pat::PhotonCollection>(photonTag_))
+  pfcandTag_(iConfig.getUntrackedParameter<edm::InputTag>("pfCands",edm::InputTag("packedPFCandidates"))), 
+  photonToken_(consumes<pat::PhotonCollection>(photonTag_)),
+  pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_))
 {}
 void PhotonBlock::beginJob() 
 {
@@ -40,6 +43,9 @@ void PhotonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   edm::Handle<pat::PhotonCollection> photons;
   bool found = iEvent.getByToken(photonToken_, photons);
 
+  edm::Handle<pat::PackedCandidateCollection> pfs;
+  iEvent.getByToken(pfToken_, pfs);
+  
   if (found && photons.isValid()) {
     edm::LogInfo("PhotonBlock") << "Total # PAT Photons: " << photons->size();
     for (pat::Photon const& v: *photons) {
@@ -166,6 +172,28 @@ void PhotonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
         }
       }
 */
+      std::vector<double> isotemp;
+      calcIsoFromPF(0.15, pfs, v, isotemp);
+      photon.isolationMap["c15"] = isotemp;
+      isotemp.clear();
+      calcIsoFromPF(0.20, pfs, v, isotemp);
+      photon.isolationMap["c20"] = isotemp;
+      isotemp.clear();
+      calcIsoFromPF(0.25, pfs, v, isotemp);
+      photon.isolationMap["c25"] = isotemp;
+      isotemp.clear();
+      calcIsoFromPF(0.30, pfs, v, isotemp);
+      photon.isolationMap["c30"] = isotemp;
+      isotemp.clear();
+      calcIsoFromPF(0.35, pfs, v, isotemp);
+      photon.isolationMap["c35"] = isotemp;
+      isotemp.clear();
+      calcIsoFromPF(0.40, pfs, v, isotemp);
+      photon.isolationMap["c40"] = isotemp;
+      isotemp.clear();
+      calcIsoFromPF(0.45, pfs, v, isotemp);
+      photon.isolationMap["c45"] = isotemp;
+
       list_->push_back(photon);
     }
     fnPhoton_ = list_->size();
@@ -174,6 +202,36 @@ void PhotonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     edm::LogError("PhotonBlock") << "Error >> Failed to get pat::Photon for label: " 
                                  << photonTag_;
   }
+}
+void PhotonBlock::calcIsoFromPF(double cone, edm::Handle<pat::PackedCandidateCollection>& pfs, const pat::Photon& v, std::vector<double>& iso)
+{
+  // initialize sums
+  double charged = 0, neutral = 0, pileup = 0;
+  // now get a list of the PF candidates used to build this lepton, so to exclude them
+  std::vector<reco::CandidatePtr> footprint;
+  for (unsigned int i = 0, n = v.numberOfSourceCandidatePtrs(); i < n; ++i) {
+    footprint.push_back(v.sourceCandidatePtr(i));
+  }
+  // now loop on pf candidates
+  for (unsigned int i = 0, n = pfs->size(); i < n; ++i) {
+    const pat::PackedCandidate &pf = (*pfs)[i];
+    if (deltaR(pf,v) < cone) {
+    //pfcandidate-based footprint removal
+    if (std::find(footprint.begin(), footprint.end(), reco::CandidatePtr(pfs,i)) != footprint.end()) 
+       continue;
+    
+    if (pf.charge() == 0) {
+      if (pf.pt() > 0.5) neutral += pf.pt();
+    } else if (pf.fromPV() >= 2) {
+      if( pf.pt() > 0.2 )  charged += pf.pt();
+    } else {
+      if (pf.pt() > 0.5) pileup += pf.pt();  
+    }
+  }
+ }
+  iso.push_back(charged); 
+  iso.push_back(neutral);
+  iso.push_back(pileup);
 }
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(PhotonBlock);

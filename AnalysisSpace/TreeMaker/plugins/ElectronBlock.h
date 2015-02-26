@@ -21,6 +21,8 @@
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 
+#include "EgammaAnalysis/ElectronTools/interface/EGammaMvaEleEstimatorCSA14.h"
+
 namespace vhtm {
   class Electron;
 }
@@ -48,10 +50,13 @@ private:
   int verbosity_;
   bool bsCorr_;
 
+  EGammaMvaEleEstimatorCSA14* myMVATrig;
+
   const edm::InputTag bsTag_;
   const edm::InputTag vertexTag_;
   const edm::InputTag electronTag_;
   const edm::InputTag pfcandTag_;
+  const edm::InputTag MVAidCollection_;
 
   const edm::EDGetTokenT<reco::BeamSpot> bsToken_;
   const edm::EDGetTokenT<reco::VertexCollection> vertexToken_;
