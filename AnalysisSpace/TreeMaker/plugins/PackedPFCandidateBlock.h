@@ -43,6 +43,9 @@ class PackedPFCandidateBlock : public edm::EDAnalyzer
 
   int verbosity_;
   const edm::InputTag pfcandTag_;
+
+  std::vector<int> pdgTosave_;
+
   const edm::EDGetTokenT<pat::PackedCandidateCollection> pfToken_;
 };
 #endif

@@ -18,6 +18,7 @@
 PackedPFCandidateBlock::PackedPFCandidateBlock(const edm::ParameterSet& iConfig) :
   verbosity_(iConfig.getUntrackedParameter<int>("verbosity", 0)),
   pfcandTag_(iConfig.getUntrackedParameter<edm::InputTag>("pfCands",edm::InputTag("packedPFCandidates"))), 
+  pdgTosave_(iConfig.getParameter<std::vector<int>>("pdgTosave")),
   pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_))
 {}
 void PackedPFCandidateBlock::beginJob() 
@@ -47,10 +48,12 @@ void PackedPFCandidateBlock::analyze(const edm::Event& iEvent, const edm::EventS
       //	break;
       //}
 
-      int pdg = v.pdgId();
-      if( pdg != std::abs(11) || pdg != std::abs(13) ||
-          pdg != std::abs(15) || pdg != std::abs(22) 
-        ) continue;
+      int pdg = std::abs(v.pdgId());
+      if( std::find(pdgTosave_.begin(),  pdgTosave_.end(), pdg) == pdgTosave_.end() ) continue;
+      
+      //if( pdg != std::abs(11) && pdg != std::abs(13) &&
+      //    pdg != std::abs(15) && pdg != std::abs(22) 
+      //  ) continue;
 
       vhtm::PackedPFCandidate pfCand;
       
@@ -59,7 +62,7 @@ void PackedPFCandidateBlock::analyze(const edm::Event& iEvent, const edm::EventS
       pfCand.phi = v.phi();
       pfCand.energy = v.energy();
       
-      pfCand.pdgId = pdg;
+      pfCand.pdgId = v.pdgId();
       pfCand.charge = v.charge();
    
       pfCand.vx = v.vx();
