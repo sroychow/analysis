@@ -19,6 +19,7 @@ namespace {
     vhtm::TriggerObject rvd;
     vhtm::Candidate rve;
     vhtm::Photon rvf;
+    vhtm::PackedPFCandidate rvg;
 
     std::vector<vhtm::Electron> vrv1;
     std::vector<vhtm::GenParticle> vrv2;
@@ -34,7 +35,8 @@ namespace {
     std::vector<vhtm::GenEvent> vrvd;
     std::vector<vhtm::Candidate> vrve;
     std::vector<vhtm::Photon> vrvf;
-    std::vector<double> vrvg;
+    std::vector<vhtm::PackedPFCandidate> vrvg;
+    std::vector<double> vrvl;
     std::map<double, std::vector<double> > vrvm;
     std::map< std::string, std::vector<double> > vrvn;
   };

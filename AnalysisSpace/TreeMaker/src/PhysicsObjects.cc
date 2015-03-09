@@ -8,6 +8,23 @@ vhtm::Candidate::Candidate():
 vhtm::Candidate::Candidate(float _pt, float _eta, float _phi):
   pt(_pt), eta(_eta), phi(_phi)
 {}
+vhtm::PackedPFCandidate::PackedPFCandidate():
+  pt(-999.), 
+  eta(-999.), 
+  phi(-999.),
+  energy(-999.),
+  pdgId(0),
+  charge(-999),
+  vx(-999.),
+  vy(-999.),
+  vz(-999.),
+  fromPV(-999),
+  dxy(-999.),
+  dz(-999.),
+  dxyError(-999.),
+  dzError(-999.)
+{}
+
 vhtm::Event::Event():
   run(0),
   event(0),

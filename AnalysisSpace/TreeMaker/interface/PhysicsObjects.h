@@ -17,9 +17,38 @@ namespace vhtm {
     float pt;
     float eta;
     float phi;
-
+   
     ClassDef(Candidate,1)
   };
+
+  class PackedPFCandidate: public TObject {
+  public:
+    PackedPFCandidate();
+    //Candidate(float pt, float eta, float phi);
+    virtual ~PackedPFCandidate() {}
+
+    float pt;
+    float eta;
+    float phi;
+    float energy;
+    
+    int pdgId;
+    int charge;
+    
+    double vx;
+    double vy;
+    double vz;
+   
+    int fromPV;
+    //w.r.t PV
+    float dxy;
+    float dz;
+    float dxyError;
+    float dzError;
+
+    ClassDef(PackedPFCandidate,1)
+  };
+ 
   class Event: public TObject {
   public:
     Event();

@@ -14,6 +14,7 @@ from AnalysisSpace.TreeMaker.TauBlock_cfi import tauBlock
 from AnalysisSpace.TreeMaker.GenParticleBlock_cfi import genParticleBlock
 from AnalysisSpace.TreeMaker.TriggerBlock_cfi import triggerBlock
 from AnalysisSpace.TreeMaker.TriggerObjectBlock_cfi import triggerObjectBlock
+from AnalysisSpace.TreeMaker.PackedPFCandidateBlock_cfi import packedPFCandidateBlock
 
 treeContentSequence = cms.Sequence(
    eventBlock
@@ -30,4 +31,5 @@ treeContentSequence = cms.Sequence(
  + tauBlock
  + metBlock
  + jetBlock
+ + packedPFCandidateBlock
 )

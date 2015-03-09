@@ -41,6 +41,9 @@
   <class name="vhtm::Photon" ClassVersion="1">
     <version ClassVersion="1" checksum="934085531" />
   </class>
+  <class name="vhtm::PackedPFCandidate" ClassVersion="1">
+    <version ClassVersion="1" checksum="672563905" />
+  </class>
   <class name="std::vector<vhtm::Electron>" persistent="true" />
   <class name="std::vector<vhtm::Muon>" persistent="true" />
   <class name="std::vector<vhtm::Jet>" persistent="true" />
@@ -55,6 +58,7 @@
   <class name="std::vector<vhtm::GenEvent>" persistent="true" />
   <class name="std::vector<vhtm::Candidate>" persistent="true" />
   <class name="std::vector<vhtm::Photon>" persistent="true" />
+  <class name="std::vector<vhtm::PackedPFCandidate>" persistent="true" />
   <class name="std::map<double, std::vector<double> >" persistent="true" />
   <class name="std::map<std::string, std::vector<double> >" persistent="true" />
 </lcgdict>
