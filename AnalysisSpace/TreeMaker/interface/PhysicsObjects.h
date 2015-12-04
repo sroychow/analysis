@@ -93,6 +93,7 @@ namespace vhtm {
     GenEvent();
     virtual ~GenEvent() {}
   
+    double weightevt;
     unsigned int processID;
     double ptHat;
     std::vector<double> pdfWeights;

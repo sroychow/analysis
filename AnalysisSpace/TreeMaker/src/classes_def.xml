@@ -3,7 +3,7 @@
     <version ClassVersion="1" checksum="3135552057" />
   </class>
   <class name="vhtm::GenEvent" ClassVersion="1">
-    <version ClassVersion="1" checksum="3575426018" />
+    <version ClassVersion="1" checksum="3017551720" />
   </class>
   <class name="vhtm::Electron" ClassVersion="1">
     <version ClassVersion="1" checksum="3357553873" />

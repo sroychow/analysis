@@ -52,6 +52,10 @@ void GenEventBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     if (genEvtInfoProduct.isValid()) {
       edm::LogInfo("GenEventBlock") << "Success. Obtained GenEventInfoProduct for label: "
                                     << genEventTag_;
+      // event weight
+      double weightevt=genEvtInfoProduct->weight();
+      genEvent.weightevt = weightevt;
+
       genEvent.processID = genEvtInfoProduct->signalProcessID();
       genEvent.ptHat     = genEvtInfoProduct->hasBinningValues()
                          ? genEvtInfoProduct->binningValues()[0] : 0.;
