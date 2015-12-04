@@ -11,8 +11,8 @@ eventBlock = cms.EDAnalyzer("EventBlock",
   #numTracks = cms.untracked.uint32(10),
   hpTrackThreshold = cms.untracked.double(0.25),
   puSummaryInputTag = cms.untracked.InputTag('addPileupInfo'),
-  #selectedVtxInputTag = cms.untracked.InputTag('selectedPrimaryVertices'),
-  selectedVtxInputTag = cms.untracked.InputTag('offlineSlimmedPrimaryVertices'),
+  selectedVtxInputTag = cms.untracked.InputTag('selectedPrimaryVertices'),
+  #selectedVtxInputTag = cms.untracked.InputTag('offlineSlimmedPrimaryVertices'),
   rhoInputTag = cms.untracked.InputTag('kt6PFJets','rho'),                         
   rhoNeutralInputTag = cms.untracked.InputTag('kt6PFNeutralJetsForVtxMultReweighting', 'rho')                         
 )

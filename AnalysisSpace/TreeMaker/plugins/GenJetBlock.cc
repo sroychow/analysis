@@ -18,7 +18,7 @@ void GenJetBlock::beginJob() {
   // Get TTree pointer
   TTree* tree = vhtm::Utility::getTree("vhtree");
   list_ = new std::vector<vhtm::GenJet>();
-  tree->Branch("GenJet", "std::vector<vhtm::GenJet>", &list_, 32000, 2);
+  tree->Branch("GenJet", "std::vector<vhtm::GenJet>", &list_, 32000, -1);
   tree->Branch("nGenJet", &fnGenJet_, "fnGenJet_/I");
 }
 void GenJetBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {

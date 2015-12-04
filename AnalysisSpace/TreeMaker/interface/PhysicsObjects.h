@@ -46,6 +46,8 @@ namespace vhtm {
     float dxyError;
     float dzError;
 
+    std::map< std::string,std::vector<double> > isolationMap;
+
     ClassDef(PackedPFCandidate,1)
   };
  
@@ -137,6 +139,7 @@ namespace vhtm {
     double scET;
     double scRawEnergy;
     float BDT;  
+    float BDTpreComp;  
     // Vertex association variables
     double dxyPV;
     double dzPV;
@@ -172,7 +175,9 @@ namespace vhtm {
     int fidFlag;
     std::map<std::string, float> idmap;
     int selbit;
-
+    bool passMediumId;
+    bool passTightId;
+    int mvaCategory;
     std::map< std::string,std::vector<double> > isolationMap;
 
     ClassDef(Electron, 1)
@@ -319,6 +324,8 @@ namespace vhtm {
     bool isGlobalMuon;
     bool isTrackerMuon;
     bool isPFMuon;
+    bool isghostCleaned;
+
     double eta;
     double phi;
     double pt;
@@ -329,7 +336,8 @@ namespace vhtm {
     double trkD0;
 
     double trkDz;
-
+    int muonBestTrackType;  
+   
     double globalChi2;
     double tkNChi2;
 
@@ -342,10 +350,14 @@ namespace vhtm {
     float pfPhotonIso03;    
     float sumPUPt03;
     float pfRelIso03;
-    float pfChargedIsoR04;
-    float sumPUPt04;
+
+    float sumChargedParticlePt;
+    float sumChargedHadronPt;
+    float sumNeutralHadronEt;
+    float sumPhotonEt;
+    float sumPUPt;
     float pfRelIso04;
-    
+
     int passID;
     double dxyPV;
     double dzPV;
@@ -380,6 +392,8 @@ namespace vhtm {
     unsigned int stationGapMaskPull;
 
     bool muonID;
+   
+    int nSegments;
 
     int selbit;
     std::map< std::string,std::vector<double> > isolationMap;
@@ -424,8 +438,11 @@ namespace vhtm {
     //double combinedSecondaryVertexMVABTag;
     float combinedInclusiveSecondaryVertexBTag;
     float combinedInclusiveSecondaryVertexV2BJetTags;
+    float pfCombinedInclusiveSecondaryVertexV2BJetTags;
     //double combinedMVABTag;
     std::map<std::string, float> discrimap;
+    
+    float jpumva;
 
     int passLooseID;
     int passTightID;

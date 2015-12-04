@@ -15,10 +15,10 @@
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/Provenance/interface/EventID.h"
 #include "FWCore/ParameterSet/interface/ProcessDesc.h"
-#include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
 
+class TPMERegexp;
 namespace vhtm {
   class TriggerObject;
 }
@@ -26,17 +26,17 @@ namespace vhtm {
 class TriggerObjectBlock : public edm::EDAnalyzer
 {
 private:
-  virtual void beginJob() override;
-  virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) override;
-  virtual void beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup);
+  virtual void beginJob();
+  virtual void beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {}
+  virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup);
+  virtual void endJob() {}
 
 public:
   explicit TriggerObjectBlock(const edm::ParameterSet& iConfig);
   virtual ~TriggerObjectBlock();
-  static void printObjectInfo(const pat::TriggerObjectStandAlone& obj); 
 
   enum {
-    kMaxTriggerObject_ = 200
+    kMaxTriggerObject_ = 100
   };
 
 private:
@@ -44,8 +44,12 @@ private:
   std::vector<vhtm::TriggerObject>* list_;
 
   const int verbosity_;
+  const std::vector<std::string> hltPathsOfInterest_;
+  const std::string hltPattern_;
   const double minTrigObjPt_;
-  HLTConfigProvider hltConfig_;
+
+  TPMERegexp* re_;
+  std::vector<std::string> matchedPathList_;
 
   const edm::InputTag hltTag_;
   const edm::InputTag objectTag_;

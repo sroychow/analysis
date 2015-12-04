@@ -38,7 +38,7 @@ void TauBlock::beginJob()
   // Get TTree pointer
   TTree* tree = vhtm::Utility::getTree("vhtree");
   list_ = new std::vector<vhtm::Tau>();
-  tree->Branch("Tau", "std::vector<vhtm::Tau>", &list_, 32000, 2);
+  tree->Branch("Tau", "std::vector<vhtm::Tau>", &list_, 32000, -1);
   tree->Branch("nTau", &fnTau_, "fnTau_/I");
 }
 void TauBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {

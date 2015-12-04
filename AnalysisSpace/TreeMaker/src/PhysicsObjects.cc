@@ -2,14 +2,26 @@
 
 #define NEL(x) (sizeof((x))/sizeof((x)[0]))
 
+ClassImp(vhtm::Event)
+ClassImp(vhtm::GenEvent)
+ClassImp(vhtm::Electron)
+ClassImp(vhtm::GenParticle)
+ClassImp(vhtm::GenJet)
+ClassImp(vhtm::GenMET)
+ClassImp(vhtm::MET)
+ClassImp(vhtm::Tau)
+ClassImp(vhtm::Muon)
+ClassImp(vhtm::Jet)
+ClassImp(vhtm::Vertex)
+ClassImp(vhtm::TriggerObject)
+ClassImp(vhtm::Candidate)
+ClassImp(vhtm::Photon)
+ClassImp(vhtm::PackedPFCandidate)
+
 vhtm::Candidate::Candidate():
-  pt(-999), eta(-999), phi(-999)
-{}
-vhtm::Candidate::Candidate(float _pt, float _eta, float _phi):
-  pt(_pt), eta(_eta), phi(_phi)
-{}
-vhtm::PackedPFCandidate::PackedPFCandidate():
-  pt(-999.), 
+  pt(-999), eta(-999), phi(-999) {} vhtm::Candidate::Candidate(float _pt, float _eta, float _phi):
+  pt(_pt), eta(_eta), phi(_phi) {} vhtm::PackedPFCandidate::PackedPFCandidate():
+  pt(-999.),
   eta(-999.), 
   phi(-999.),
   energy(-999.),
@@ -92,6 +104,7 @@ vhtm::Electron::Electron():
   scET(-999),
   scRawEnergy(-999),
   BDT(-999),
+  BDTpreComp(-999),
   dxyPV(-999),
   dzPV(-999),
   vtxDist3D(-999),
@@ -117,7 +130,10 @@ vhtm::Electron::Electron():
   mvaPreselection(false),
   isTriggerElectron(false),
   fidFlag(0),
-  selbit(0)
+  selbit(0),
+  passMediumId(false),
+  passTightId(false),
+  mvaCategory(false)
 {
   idmap.clear();
 }
@@ -230,6 +246,7 @@ vhtm::Muon::Muon():
   isGlobalMuon(false),
   isTrackerMuon(false),
   isPFMuon(false),
+  isghostCleaned(false),
   eta(-999),
   phi(-999),
   pt(-999),
@@ -238,6 +255,7 @@ vhtm::Muon::Muon():
   charge(-999),
   trkD0(-999),
   trkDz(-999),
+  muonBestTrackType(-999),
   globalChi2(9999.),
   tkNChi2(9999.),
   trkIso(-999),
@@ -249,8 +267,11 @@ vhtm::Muon::Muon():
   pfPhotonIso03(999.),
   sumPUPt03(-999),
   pfRelIso03(-1),
-  pfChargedIsoR04(-999),
-  sumPUPt04(-999),
+  sumChargedParticlePt(999.),
+  sumChargedHadronPt(999.),
+  sumNeutralHadronEt(999.),
+  sumPhotonEt(999.),
+  sumPUPt(999.),   
   pfRelIso04(-1),
   passID(false),
   dxyPV(-999),
@@ -279,6 +300,7 @@ vhtm::Muon::Muon():
   stationGapMaskDistance(0),
   stationGapMaskPull(0),
   muonID(false),
+  nSegments(-1),
   selbit(0)
 {}
 
@@ -313,7 +335,9 @@ vhtm::Jet::Jet():
   combinedSecondaryVertexBTag(-999),
   //combinedSecondaryVertexMVABTag(-999),
   combinedInclusiveSecondaryVertexBTag(-999),
+  pfCombinedInclusiveSecondaryVertexV2BJetTags(-999.),
   //combinedMVABTag(-999),
+  jpumva(9999.),
   passLooseID(-1),
   passTightID(-1),
   selbit(0) 

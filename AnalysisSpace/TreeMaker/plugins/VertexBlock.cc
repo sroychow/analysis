@@ -20,7 +20,7 @@ void VertexBlock::beginJob() {
   // Get TTree pointer
   TTree* tree = vhtm::Utility::getTree("vhtree");
   list_ = new std::vector<vhtm::Vertex>();
-  tree->Branch("Vertex", "std::vector<vhtm::Vertex>", &list_, 32000, 2);
+  tree->Branch("Vertex", "std::vector<vhtm::Vertex>", &list_, 32000, -1);
   tree->Branch("nVertex", &fnVertex_, "fnVertex_/I");
 }
 void VertexBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {

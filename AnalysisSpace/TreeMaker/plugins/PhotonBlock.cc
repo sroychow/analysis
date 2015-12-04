@@ -32,7 +32,7 @@ void PhotonBlock::beginJob()
   std::string tree_name = "vhtree";
   TTree* tree = vhtm::Utility::getTree(tree_name);
   list_ = new std::vector<vhtm::Photon>();
-  tree->Branch("Photon", "std::vector<vhtm::Photon>", &list_, 32000, 2);
+  tree->Branch("Photon", "std::vector<vhtm::Photon>", &list_, 32000, -1);
   tree->Branch("nPhoton", &fnPhoton_, "fnPhoton_/I");
 }
 void PhotonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {

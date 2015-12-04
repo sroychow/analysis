@@ -23,7 +23,7 @@ void GenParticleBlock::beginJob() {
   // Get TTree pointer
   TTree* tree = vhtm::Utility::getTree("vhtree");
   list_ = new std::vector<vhtm::GenParticle>();
-  tree->Branch("GenParticle", "std::vector<vhtm::GenParticle>", &list_, 32000, 2);
+  tree->Branch("GenParticle", "std::vector<vhtm::GenParticle>", &list_, 32000, -1);
   tree->Branch("nGenParticle", &fnGenParticle_, "fnGenParticle_/I");
 }
 void GenParticleBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {

@@ -15,15 +15,14 @@
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/Provenance/interface/EventID.h"
 #include "FWCore/ParameterSet/interface/ProcessDesc.h"
-#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
+#include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 
 class TriggerBlock: public edm::EDAnalyzer
 {
 private:
-  virtual void beginJob();
-  virtual void beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {}
-  virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup);
-  virtual void endJob() {}
+  virtual void beginJob() override;
+  virtual void beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) override;
+  virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) override;
 
 public:
   explicit TriggerBlock(const edm::ParameterSet& iConfig);
@@ -35,8 +34,9 @@ private:
 
   const edm::InputTag l1Tag_;
   const edm::InputTag hltTag_;
-  const edm::InputTag prescaleTag_;
   const std::vector<std::string> hltPathsOfInterest_;
+  std::vector<std::string> matchedPathList_;
+  HLTConfigProvider hltConfig_;
 
   std::vector<int>* l1physbits_;
   std::vector<int>* l1techbits_;
@@ -46,6 +46,5 @@ private:
 
   const edm::EDGetTokenT<L1GlobalTriggerReadoutRecord> l1Token_;
   const edm::EDGetTokenT<edm::TriggerResults> hltToken_;
-  const edm::EDGetTokenT<pat::PackedTriggerPrescales> prescaleToken_;
 };
 #endif

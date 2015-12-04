@@ -26,7 +26,7 @@ void JetBlock::beginJob()
   std::string tree_name = "vhtree";
   TTree* tree = vhtm::Utility::getTree(tree_name);
   list_ = new std::vector<vhtm::Jet>();
-  tree->Branch("Jet", "std::vector<vhtm::Jet>", &list_, 32000, 2);
+  tree->Branch("Jet", "std::vector<vhtm::Jet>", &list_, 32000, -1);
   tree->Branch("nJet", &fnJet_, "fnJet_/I");
 }
 void JetBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -91,12 +91,14 @@ void JetBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
       //jobj.combinedMVABTag                  = jet.bDiscriminator("combinedMVABJetTags");
       //added for 720
       jobj.combinedInclusiveSecondaryVertexV2BJetTags = jet.bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags");
-       
+      jobj.pfCombinedInclusiveSecondaryVertexV2BJetTags = jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags"); 
       jobj.passLooseID = passjetLoose;
       jobj.passTightID = passjetTight;
 
       for (const std::pair<std::string, float>& pa: jet.getPairDiscri())
 	jobj.discrimap[pa.first] = pa.second;
+
+      jobj.jpumva=jet.userFloat("pileupJetId:fullDiscriminant");
 
       list_->push_back(jobj);
     }

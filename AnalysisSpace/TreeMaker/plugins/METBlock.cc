@@ -23,16 +23,16 @@ void METBlock::beginJob()
   TTree* tree = vhtm::Utility::getTree("vhtree");
 
   pfList_ = new std::vector<vhtm::MET>();
-  tree->Branch("MET", "std::vector<vhtm::MET>", &pfList_, 32000, 2);
+  tree->Branch("MET", "std::vector<vhtm::MET>", &pfList_, 32000, -1);
   tree->Branch("nMET", &fnPFMET_, "fnPFMET_/I");
 
 #if 0
   corrList_ = new std::vector<vhtm::MET>();
-  tree->Branch("corrMET", "std::vector<vhtm::MET>", &corrList_, 32000, 2);
+  tree->Branch("corrMET", "std::vector<vhtm::MET>", &corrList_, 32000, -1);
   tree->Branch("corrnMET", &fnCorrMET_, "fnCorrMET_/I");
 
   mvaList_ = new std::vector<vhtm::MET>();
-  tree->Branch("mvaMET", "std::vector<vhtm::MET>", &mvaList_, 32000, 2);
+  tree->Branch("mvaMET", "std::vector<vhtm::MET>", &mvaList_, 32000, -1);
   tree->Branch("mvanMET", &fnMVAMET_, "fnMVAMET_/I");
 #endif
 }
@@ -68,9 +68,14 @@ void METBlock::fillMET(const edm::Event& iEvent,
       mobj.met          = v.pt();
       mobj.metphi       = v.phi();
       mobj.sumet        = v.sumEt();
+/*
       mobj.metuncorr    = v.uncorrectedPt(pat::MET::uncorrALL);
       mobj.metphiuncorr = v.uncorrectedPhi(pat::MET::uncorrALL);
       mobj.sumetuncorr  = v.sumEt() - v.corSumEt(pat::MET::uncorrALL);
+*/
+      mobj.metuncorr    = v.uncorPt();
+      mobj.metphiuncorr = v.uncorPhi();
+      mobj.sumetuncorr  = v.sumEt();
 
       list->push_back(mobj);
     }

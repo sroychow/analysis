@@ -21,8 +21,6 @@
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 
-#include "EgammaAnalysis/ElectronTools/interface/EGammaMvaEleEstimatorCSA14.h"
-
 namespace vhtm {
   class Electron;
 }
@@ -49,18 +47,30 @@ private:
 
   int verbosity_;
   bool bsCorr_;
-
-  EGammaMvaEleEstimatorCSA14* myMVATrig;
+  bool trigMode_;
 
   const edm::InputTag bsTag_;
   const edm::InputTag vertexTag_;
   const edm::InputTag electronTag_;
   const edm::InputTag pfcandTag_;
-  const edm::InputTag MVAidCollection_;
-
+  
+  
   const edm::EDGetTokenT<reco::BeamSpot> bsToken_;
   const edm::EDGetTokenT<reco::VertexCollection> vertexToken_;
   const edm::EDGetTokenT<pat::ElectronCollection> electronToken_;
   const edm::EDGetTokenT<pat::PackedCandidateCollection> pfToken_;
+
+  // ID decisions objects
+  edm::EDGetTokenT<edm::ValueMap<bool> > eleMediumIdMapToken_;
+  edm::EDGetTokenT<edm::ValueMap<bool> > eleTightIdMapToken_;
+  
+  // MVA values and categories (optional)
+  edm::EDGetTokenT<edm::ValueMap<float> > mvaValuesMapToken_;
+  edm::EDGetTokenT<edm::ValueMap<int> > mvaCategoriesMapToken_;
+
+  edm::EDGetToken gsfelectronTokenMVAId_;
+  
+  std::string branchName_;
+
 };
 #endif

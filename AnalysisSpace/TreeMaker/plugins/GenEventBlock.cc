@@ -29,7 +29,7 @@ void GenEventBlock::beginJob()
   TTree* tree = vhtm::Utility::getTree("vhtree");
 
   list_ = new std::vector<vhtm::GenEvent>();
-  tree->Branch("GenEvent", "std::vector<vhtm::GenEvent>", &list_, 32000, 2);
+  tree->Branch("GenEvent", "std::vector<vhtm::GenEvent>", &list_, 32000, -1);
 
   pdfWeights_ = new std::vector<double>();
   tree->Branch("pdfWeights", "vector<double>", &pdfWeights_);

@@ -57,7 +57,7 @@ void EventBlock::beginJob() {
   // Get TTree pointer
   TTree* tree = vhtm::Utility::getTree("vhtree");
   list_ = new std::vector<vhtm::Event>();
-  tree->Branch("Event", "std::vector<vhtm::Event>", &list_, 32000, 2);
+  tree->Branch("Event", "std::vector<vhtm::Event>", &list_, 32000, -1);
 
   nPU_ = new std::vector<int>();
   tree->Branch("nPU", "std::vector<int>", &nPU_);

@@ -1,6 +1,5 @@
 #include <iostream>
 #include <algorithm>
-
 #include "TFile.h"
 #include "TTree.h"
 #include "TROOT.h"
@@ -13,6 +12,8 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/Common/interface/ValueMap.h"
+#include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 
 #include "AnalysisSpace/TreeMaker/interface/PhysicsObjects.h"
 #include "AnalysisSpace/TreeMaker/plugins/ElectronBlock.h"
@@ -22,15 +23,21 @@
 ElectronBlock::ElectronBlock(const edm::ParameterSet& iConfig):
   verbosity_(iConfig.getUntrackedParameter<int>("verbosity", 0)),
   bsCorr_(iConfig.getUntrackedParameter<bool>("beamSpotCorr", false)),
+  trigMode_(iConfig.getUntrackedParameter<bool>("useTrigMode", false)),
   bsTag_(iConfig.getUntrackedParameter<edm::InputTag>("offlineBeamSpot", edm::InputTag("offlineBeamSpot"))),
   vertexTag_(iConfig.getUntrackedParameter<edm::InputTag>("vertexSrc", edm::InputTag("goodOfflinePrimaryVertices"))),
   electronTag_(iConfig.getUntrackedParameter<edm::InputTag>("electronSrc", edm::InputTag("selectedPatElectrons"))),
   pfcandTag_(iConfig.getUntrackedParameter<edm::InputTag>("pfCands",edm::InputTag("packedPFCandidates"))),
-  MVAidCollection_(iConfig.getParameter<edm::InputTag>("MVAId")),
   bsToken_(consumes<reco::BeamSpot>(bsTag_)),
   vertexToken_(consumes<reco::VertexCollection>(vertexTag_)),
   electronToken_(consumes<pat::ElectronCollection>(electronTag_)),
-  pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_))
+  pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_)),
+  eleMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap"))),
+  eleTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleTightIdMap"))),
+  mvaValuesMapToken_(consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("mvaValuesMap"))),
+  mvaCategoriesMapToken_(consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("mvaCategoriesMap"))),
+  gsfelectronTokenMVAId_(consumes<edm::View<reco::GsfElectron> >(electronTag_)),
+  branchName_(iConfig.getParameter<std::string>("objectbranchName"))
 {
 }
 ElectronBlock::~ElectronBlock() {
@@ -41,24 +48,11 @@ void ElectronBlock::beginJob()
   std::string tree_name = "vhtree";
   TTree* tree = vhtm::Utility::getTree(tree_name);
   list_ = new std::vector<vhtm::Electron>();
-  tree->Branch("Electron", "std::vector<vhtm::Electron>", &list_, 32000, 2);
-  tree->Branch("nElectron", &fnElectron_, "fnElectron_/I");
-  //Electron MVA part
-  std::vector<std::string> myManualCatWeigths;
-  myManualCatWeigths.push_back("EgammaAnalysis/ElectronTools/data/CSA14/TrigIDMVA_50ns_EB_BDT.weights.xml");
-  myManualCatWeigths.push_back("EgammaAnalysis/ElectronTools/data/CSA14/TrigIDMVA_50ns_EE_BDT.weights.xml"); 
-  vector<string> myManualCatWeigthsTrig;
-  string the_path;
-  for (unsigned i = 0 ; i < myManualCatWeigths.size() ; i++){
-    the_path = edm::FileInPath ( myManualCatWeigths[i] ).fullPath();
-    myManualCatWeigthsTrig.push_back(the_path);
-  }
-
-  myMVATrig = new EGammaMvaEleEstimatorCSA14();
-  myMVATrig->initialize("BDT",
-                         EGammaMvaEleEstimatorCSA14::kTrig,
-                         true,
-                         myManualCatWeigthsTrig);
+  //tree->Branch("Electron", "std::vector<vhtm::Electron>", &list_, 32000, -1);
+  //tree->Branch("nElectron", &fnElectron_, "fnElectron_/I");
+  tree->Branch(branchName_.c_str(), "std::vector<vhtm::Electron>", &list_, 32000, -1);
+  std::string nobj = "n" + branchName_;
+  tree->Branch(nobj.c_str(), &fnElectron_, "fnElectron_/I");
 }
 void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and the nObj variables
@@ -68,8 +62,24 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   edm::Handle<pat::ElectronCollection> electrons;
   bool found = iEvent.getByToken(electronToken_, electrons);
 
+  edm::Handle<edm::View<reco::GsfElectron> > gsfelectrons;
+  iEvent.getByToken(gsfelectronTokenMVAId_, gsfelectrons);
+  //bool gsf_found = iEvent.getByToken(gsfelectronTokenMVAId_, gsfelectrons);
+  //if( gsf_found ) std::cout << "GSF Found" << std::endl;
+
   edm::Handle<pat::PackedCandidateCollection> pfs;
   iEvent.getByToken(pfToken_, pfs);
+
+  edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > tight_id_decisions; 
+  iEvent.getByToken(eleMediumIdMapToken_,medium_id_decisions);
+  iEvent.getByToken(eleTightIdMapToken_,tight_id_decisions);
+
+  // Get MVA values and categories (optional)
+  edm::Handle<edm::ValueMap<float> > mvaValues;
+  edm::Handle<edm::ValueMap<int> > mvaCategories;
+  iEvent.getByToken(mvaValuesMapToken_,mvaValues);
+  iEvent.getByToken(mvaCategoriesMapToken_,mvaCategories);
 
   if (found && electrons.isValid()) {
     edm::Handle<reco::BeamSpot> beamSpot;
@@ -79,6 +89,9 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     iEvent.getByToken(vertexToken_, primaryVertices);
 
     edm::LogInfo("ElectronBlock") << "Total # PAT Electrons: " << electrons->size();
+    
+    //auto gsfit = gsfelectrons->begin();
+    unsigned int gsfeleidx = 0;
     for (const pat::Electron& v: *electrons) {
       if (list_->size() == kMaxElectron_) {
         edm::LogInfo("ElectronBlock") << "Too many PAT Electrons, fnElectron = "
@@ -100,6 +113,15 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       float nMissingHits = 0;
       double dxyWrtPV = -99.;
       double dzWrtPV = -99.;
+      
+      //storing of ele id decisions
+      const auto gsfel = gsfelectrons->ptrAt(gsfeleidx);
+      electron.passMediumId = (*medium_id_decisions)[gsfel];
+      electron.passTightId = (*tight_id_decisions)[gsfel];
+      electron.BDT = (*mvaValues)[gsfel]; 
+      gsfeleidx++;
+
+      electron.BDTpreComp = v.userFloat("ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values"); 
 
       if (hasGsfTrack) {
         reco::GsfTrackRef tk = v.gsfTrack();
@@ -181,8 +203,6 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       electron.scET  = v.superCluster()->energy()/cosh(v.superCluster()->eta());
       electron.scRawEnergy = v.superCluster()->rawEnergy();
 
-//      electron.BDT=v.electronID("mvaNonTrigV0");
-      electron.BDT = myMVATrig->mvaValue(v,false); 
   
       electron.relIso = (v.trackIso() + v.ecalIso() + v.hcalIso())/v.pt();
 
@@ -336,7 +356,7 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 void ElectronBlock::calcIsoFromPF(double cone, edm::Handle<pat::PackedCandidateCollection>& pfs, const pat::Electron& v, std::vector<double>& iso)
 {
   // initialize sums
-  double charged = 0, neutral = 0, pileup  = 0;
+double chargedhad = 0., chargedSum = 0., neutral = 0., photon = 0., pileup  = 0;
   // now get a list of the PF candidates used to build this lepton, so to exclude them
   std::vector<reco::CandidatePtr> footprint;
   for (unsigned int i = 0, n = v.numberOfSourceCandidatePtrs(); i < n; ++i) {
@@ -351,16 +371,28 @@ void ElectronBlock::calcIsoFromPF(double cone, edm::Handle<pat::PackedCandidateC
         continue;
       }
       if (pf.charge() == 0) {
-        if (pf.pt() > 0.5) neutral += pf.pt();
+        if (pf.pt() > 0.5) {
+          if( pf.pdgId() == 22 )
+ photon += pf.pt();
+          else 
+            neutral += pf.pt();
+        }
       } else if (pf.fromPV() >= 2) {
-        charged += pf.pt();
+        int pdg = std::abs(pf.pdgId());
+        if( pdg!=13 && pdg!=11  ) {
+          chargedhad += pf.pt();
+          chargedSum += pf.pt();
+        } else 
+           chargedSum += pf.pt();
       } else {
         if (pf.pt() > 0.5) pileup += pf.pt();
       }
     }
   }
-  iso.push_back(charged);
+  iso.push_back(chargedhad);
+  iso.push_back(chargedSum);
   iso.push_back(neutral);
+  iso.push_back(photon);
   iso.push_back(pileup);
 }
 #include "FWCore/Framework/interface/MakerMacros.h"

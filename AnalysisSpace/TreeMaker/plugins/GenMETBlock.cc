@@ -19,7 +19,7 @@ void GenMETBlock::beginJob()
   // Get TTree pointer
   TTree* tree = vhtm::Utility::getTree("vhtree");
   list_ = new std::vector<vhtm::GenMET>();
-  tree->Branch("GenMET", "std::vector<vhtm::GenMET>", &list_, 32000, 2);
+  tree->Branch("GenMET", "std::vector<vhtm::GenMET>", &list_, 32000, -1);
   tree->Branch("nGenMET", &fnGenMET_, "fnGenMET_/I");
 }
 void GenMETBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
