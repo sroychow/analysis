@@ -19,6 +19,8 @@ GenEventBlock::GenEventBlock(const edm::ParameterSet& iConfig) :
   genEventToken_(consumes<GenEventInfoProduct>(genEventTag_)),
   pdfWeightsToken_(consumes< std::vector<double> >(pdfWeightsTag_))
 {
+  produces<std::vector<vhtm::GenEvent>>().setBranchAlias("vhtmGenEventVector");
+  produces<std::vector<double>>().setBranchAlias("pdfWeights");
 }
 GenEventBlock::~GenEventBlock() {
   delete pdfWeights_;
@@ -34,7 +36,7 @@ void GenEventBlock::beginJob()
   pdfWeights_ = new std::vector<double>();
   tree->Branch("pdfWeights", "vector<double>", &pdfWeights_);
 }
-void GenEventBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void GenEventBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector
   list_->clear();
 
@@ -74,6 +76,9 @@ void GenEventBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
                                       << pdfWeightsTag_;
         copy(pdfWeightsHandle->begin(), pdfWeightsHandle->end(), genEvent.pdfWeights.begin());
         copy(pdfWeightsHandle->begin(), pdfWeightsHandle->end(), pdfWeights_->begin());
+        //put the vhtm collections in edm
+        std::auto_ptr<std::vector<double>> pv(new std::vector<double>(*pdfWeights_));
+        iEvent.put(pv,"pdfWeights");
       }
       else {
         edm::LogError("GenEventBlock") << "Error! Failed to get PDF handle for label: "
@@ -81,6 +86,9 @@ void GenEventBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       }
     }
     list_->push_back(genEvent);
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vector<vhtm::GenEvent>> pv1(new std::vector<vhtm::GenEvent>(*list_));
+    iEvent.put(pv1,"vhtmGenEventVector");
   }
 }
 #include "FWCore/Framework/interface/MakerMacros.h"

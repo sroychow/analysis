@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -13,12 +13,12 @@
 namespace {
   class GenEvent;
 }
-class GenEventBlock : public edm::EDAnalyzer
+class GenEventBlock : public edm::EDProducer
 {
 private:
   virtual void beginJob();
   virtual void beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {}
-  virtual void analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup);
+  virtual void produce(edm::Event const& iEvent, edm::EventSetup const& iSetup);
   virtual void endJob() {}
 
 public:

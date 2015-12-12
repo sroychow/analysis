@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -17,12 +17,12 @@ namespace {
   class GenMET;
 }
 
-class GenMETBlock : public edm::EDAnalyzer
+class GenMETBlock : public edm::EDProducer
 {
 private:
   virtual void beginJob();
   virtual void beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {}
-  virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup);
+  virtual void produce(edm::Event& iEvent, const edm::EventSetup& iSetup);
   virtual void endJob() {}
 
 public:

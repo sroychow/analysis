@@ -25,7 +25,9 @@ PhotonBlock::PhotonBlock(const edm::ParameterSet& iConfig) :
   pfcandTag_(iConfig.getUntrackedParameter<edm::InputTag>("pfCands",edm::InputTag("packedPFCandidates"))), 
   photonToken_(consumes<pat::PhotonCollection>(photonTag_)),
   pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_))
-{}
+{
+  produces<std::vector<vhtm::Photon>>().setBranchAlias("vhtmPhotonVector");
+}
 void PhotonBlock::beginJob() 
 {
   // Get TTree pointer
@@ -35,7 +37,7 @@ void PhotonBlock::beginJob()
   tree->Branch("Photon", "std::vector<vhtm::Photon>", &list_, 32000, -1);
   tree->Branch("nPhoton", &fnPhoton_, "fnPhoton_/I");
 }
-void PhotonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void PhotonBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the TClonesArray and the nObj variables
   list_->clear();
   fnPhoton_ = 0;
@@ -197,6 +199,9 @@ void PhotonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       list_->push_back(photon);
     }
     fnPhoton_ = list_->size();
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vector<vhtm::Photon>> pv1(new std::vector<vhtm::Photon>(*list_));
+    iEvent.put(pv1,"vhtmPhotonVector");
   }
   else {
     edm::LogError("PhotonBlock") << "Error >> Failed to get pat::Photon for label: " 

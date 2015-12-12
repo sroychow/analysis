@@ -21,7 +21,9 @@ PackedPFCandidateBlock::PackedPFCandidateBlock(const edm::ParameterSet& iConfig)
   pfcandTag_(iConfig.getUntrackedParameter<edm::InputTag>("pfCands", edm::InputTag("packedPFCandidates"))), 
   pdgTosave_(iConfig.getParameter<std::vector<int>>("pdgTosave")),
   pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_))
-{}
+{
+  produces<std::vector<vhtm::PackedPFCandidate>>().setBranchAlias("vhtmPackedPFCandidateVector");
+}
 void PackedPFCandidateBlock::beginJob() 
 {
   // Get TTree pointer
@@ -31,7 +33,7 @@ void PackedPFCandidateBlock::beginJob()
   tree->Branch("PackedPFCandidate", "std::vector<vhtm::PackedPFCandidate>", &list_, 32000, -1);
   tree->Branch("nPackedPFCandidate", &fnPackedPFCandidate_, "fnPackedPFCandidate_/I");
 }
-void PackedPFCandidateBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void PackedPFCandidateBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and the nObj variables
   list_->clear();
   fnPackedPFCandidate_ = 0;
@@ -78,6 +80,9 @@ void PackedPFCandidateBlock::analyze(const edm::Event& iEvent, const edm::EventS
       list_->push_back(pfCand);
     }
     fnPackedPFCandidate_ = list_->size();
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vectorvhtm::PackedPFCandidate>> pv1(new std::vector<vhtm::PackedPFCandidate>(*list_));
+    iEvent.put(pv1,"vhtmPackedPFCandidateVector");    
   }
   else {
     edm::LogError("PackedPFCandidateBlock") << "Error >> Failed to get pat::PackedPFCandidate for label: " 

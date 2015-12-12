@@ -15,7 +15,9 @@ VertexBlock::VertexBlock(const edm::ParameterSet& iConfig) :
   verbosity_(iConfig.getUntrackedParameter<int>("verbosity", 0)),
   vertexTag_(iConfig.getUntrackedParameter<edm::InputTag>("vertexSrc", edm::InputTag("goodOfflinePrimaryVertices"))),
   vertexToken_(consumes<reco::VertexCollection>(vertexTag_))
-{}
+{
+  produces<std::vector<vhtm::Vertex>>().setBranchAlias("vhtmVertexVector");
+}
 void VertexBlock::beginJob() {
   // Get TTree pointer
   TTree* tree = vhtm::Utility::getTree("vhtree");
@@ -23,7 +25,7 @@ void VertexBlock::beginJob() {
   tree->Branch("Vertex", "std::vector<vhtm::Vertex>", &list_, 32000, -1);
   tree->Branch("nVertex", &fnVertex_, "fnVertex_/I");
 }
-void VertexBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void VertexBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and the nObj variables
   list_->clear();
   fnVertex_ = 0;
@@ -76,6 +78,9 @@ void VertexBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       list_->push_back(vertex);
     }
     fnVertex_ = list_->size();
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vector<vhtm::Vertex>> pv1(new std::vector<vhtm::Vertex>(*list_));
+    iEvent.put(pv1,"vhtmVertexVector");
   }
   else {
     edm::LogError("VertexBlock") << "Error! Failed to get VertexCollection for label: "

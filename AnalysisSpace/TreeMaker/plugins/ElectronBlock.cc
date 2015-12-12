@@ -39,6 +39,7 @@ ElectronBlock::ElectronBlock(const edm::ParameterSet& iConfig):
   gsfelectronTokenMVAId_(consumes<edm::View<reco::GsfElectron> >(electronTag_)),
   branchName_(iConfig.getParameter<std::string>("objectbranchName"))
 {
+  produces<std::vector<vhtm::Electron>>().setBranchAlias("vhtmElectronVector");
 }
 ElectronBlock::~ElectronBlock() {
 }
@@ -54,7 +55,7 @@ void ElectronBlock::beginJob()
   std::string nobj = "n" + branchName_;
   tree->Branch(nobj.c_str(), &fnElectron_, "fnElectron_/I");
 }
-void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void ElectronBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and the nObj variables
   list_->clear();
   fnElectron_ = 0;
@@ -347,6 +348,10 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       list_->push_back(electron);
     }
     fnElectron_ = list_->size();
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vector<vhtm::Muon>> pv1(new std::vector<vhtm::Muon>(*list_));
+    std::string productName = "vhtm" + branchName_ + "Vector";
+    iEvent.put(pv1,productName);
   }
   else {
     edm::LogError("ElectronBlock") << "Error >> Failed to get pat::Electron Collection for label: "

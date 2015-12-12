@@ -20,7 +20,9 @@ JetBlock::JetBlock(const edm::ParameterSet& iConfig) :
   verbosity_(iConfig.getUntrackedParameter<int>("verbosity", 0)),
   jetTag_(iConfig.getUntrackedParameter<edm::InputTag>("jetSrc",  edm::InputTag("selectedPatJets"))),
   jetToken_(consumes<pat::JetCollection>(jetTag_))
-{}
+{
+  produces<std::vector<vhtm::Jet>>().setBranchAlias("vhtmJetVector");
+}
 void JetBlock::beginJob()
 {
   std::string tree_name = "vhtree";
@@ -29,7 +31,7 @@ void JetBlock::beginJob()
   tree->Branch("Jet", "std::vector<vhtm::Jet>", &list_, 32000, -1);
   tree->Branch("nJet", &fnJet_, "fnJet_/I");
 }
-void JetBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void JetBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and the nObj variables
   list_->clear();
   fnJet_ = 0;
@@ -103,6 +105,9 @@ void JetBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
       list_->push_back(jobj);
     }
     fnJet_ = list_->size();
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vector<vhtm::Jet>> pv1(new std::vector<vhtm::Jet>(*list_));
+    iEvent.put(pv1,"vhtmJetVector");
   }
   else {
     edm::LogError("JetBlock") << "Error >> Failed to get pat::Jet collection for label: "

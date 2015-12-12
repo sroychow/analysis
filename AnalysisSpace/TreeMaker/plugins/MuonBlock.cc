@@ -43,6 +43,7 @@ MuonBlock::MuonBlock(const edm::ParameterSet& iConfig):
   defaultBestMuon_(!iConfig.existsAs<std::string>("customArbitration")),
   bestMuonSelector_(defaultBestMuon_ ? std::string("") : iConfig.getParameter<std::string>("customArbitration"))
 {
+  produces<std::vector<vhtm::Muon>>().setBranchAlias("vhtmMuonVector");
 }
 MuonBlock::~MuonBlock() {
 }
@@ -56,7 +57,7 @@ void MuonBlock::beginJob()
   //tree->Branch("Muon", "std::vector<vhtm::Muon>", &list_);
   tree->Branch("nMuon", &fnMuon_, "fnMuon_/I");
 }
-void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void MuonBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and the nObj variables
   list_->clear();
   fnMuon_ = 0;
@@ -332,6 +333,9 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       list_->push_back(muon);
     }
     fnMuon_ = list_->size();
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vector<vhtm::Muon>> pv1(new std::vector<vhtm::Muon>(*list_));
+    iEvent.put(pv1,"vhtmMuonVector");
     if(verbosity_) {
     int indx = 0;
     

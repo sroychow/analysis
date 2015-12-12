@@ -13,6 +13,7 @@ GenMETBlock::GenMETBlock(const edm::ParameterSet& iConfig) :
   genMETTag_(iConfig.getUntrackedParameter<edm::InputTag>("genMETSrc", edm::InputTag("genMetTrue"))),
   genMETToken_(consumes<reco::GenMETCollection>(genMETTag_))
 {
+  produces<std::vector<vhtm::GenMET>>().setBranchAlias("vhtmGenMETVector");
 }
 void GenMETBlock::beginJob()
 {
@@ -22,7 +23,7 @@ void GenMETBlock::beginJob()
   tree->Branch("GenMET", "std::vector<vhtm::GenMET>", &list_, 32000, -1);
   tree->Branch("nGenMET", &fnGenMET_, "fnGenMET_/I");
 }
-void GenMETBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void GenMETBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and nObj variables
   list_->clear();
   fnGenMET_ = 0;
@@ -47,6 +48,9 @@ void GenMETBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
         list_->push_back(genMet);
       }
       fnGenMET_ = list_->size(); 
+      //put the vhtm collections in edm
+      std::auto_ptr<std::vector<vhtm::GenMET>> pv1(new std::vector<vhtm::GenMET>(*list_));
+      iEvent.put(pv1,"vhtmGenMETVector");
     }
     else {
       edm::LogError("GenMETBlock") << "Error >> Failed to get GenMETCollection for label: "

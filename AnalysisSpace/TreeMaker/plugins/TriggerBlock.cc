@@ -23,6 +23,7 @@ TriggerBlock::TriggerBlock(const edm::ParameterSet& iConfig) :
   l1Token_(consumes<L1GlobalTriggerReadoutRecord>(l1Tag_)),
   hltToken_(consumes<edm::TriggerResults>(hltTag_))
 {
+  produces<std::vector<vector<int>>>().setBranchAlias("vhtmTriggerResults");
 }
 TriggerBlock::~TriggerBlock() {
   delete l1physbits_;
@@ -77,7 +78,7 @@ void TriggerBlock::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
     // In this case, all access methods will return empty values!
   }
 }
-void TriggerBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void TriggerBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vectors
   l1physbits_->clear();
   l1techbits_->clear();
@@ -156,6 +157,21 @@ void TriggerBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	  edm::LogInfo("TriggerBlock") << "value: " << v;
       }
     } 
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vector<int>> pv1(new std::vector<int>(*l1physbits_));
+    iEvent.put(pv1,"l1physbits");
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vector<int>> pv2(new std::vector<int>(*l1techbits_));
+    iEvent.put(pv2,"l1techbits");
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vector<int>> pv3(new std::vector<int>(*hltpaths_));
+    iEvent.put(pv3,"hltpaths");
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vector<int>> pv4(new std::vector<int>(*hltresults_));
+    iEvent.put(pv4,"hltresults");
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vector<int>> pv5(new std::vector<int>(*hltprescales));
+    iEvent.put(pv5,"hltprescales");
   } 
   else {
     edm::LogError("TriggerBlock") << "Failed to get TriggerResults for label: "

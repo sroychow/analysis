@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -22,11 +22,11 @@ namespace vhtm {
   class PackedPFCandidate;
 }
 
-class PackedPFCandidateBlock : public edm::EDAnalyzer {
+class PackedPFCandidateBlock : public edm::EDProducer {
  private:
   virtual void beginJob();
   virtual void beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {}
-  virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup);
+  virtual void produce( edm::Event& iEvent, const edm::EventSetup& iSetup);
   virtual void endJob() {}
   void calcIsoFromPF(const pat::PackedCandidate& v, edm::Handle<pat::PackedCandidateCollection>& pfs, double cone, std::vector<double>& iso);
  public:

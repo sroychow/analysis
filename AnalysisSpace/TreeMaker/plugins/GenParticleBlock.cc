@@ -16,6 +16,7 @@ GenParticleBlock::GenParticleBlock(const edm::ParameterSet& iConfig) :
   genParticleTag_(iConfig.getUntrackedParameter<edm::InputTag>("genParticleSrc", edm::InputTag("genParticles"))),
   genParticleToken_(consumes<reco::GenParticleCollection>(genParticleTag_))
 {
+  produces<std::vector<vhtm::GenParticle>>().setBranchAlias("vhtmGenParticleVector");
 }
 GenParticleBlock::~GenParticleBlock() {
 }
@@ -26,7 +27,7 @@ void GenParticleBlock::beginJob() {
   tree->Branch("GenParticle", "std::vector<vhtm::GenParticle>", &list_, 32000, -1);
   tree->Branch("nGenParticle", &fnGenParticle_, "fnGenParticle_/I");
 }
-void GenParticleBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void GenParticleBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and the nObj variables
   list_->clear();
   fnGenParticle_ = 0;
@@ -133,6 +134,9 @@ void GenParticleBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         list_->push_back(gp);
       }
       fnGenParticle_ = list_->size();
+      //put the vhtm collections in edm
+      std::auto_ptr<std::vector<vhtm::GenParticle>> pv1(new std::vector<vhtm::GenParticle>(*list_));
+      iEvent.put(pv1,"vhtmGenParticleVector");
     }
     else {
       edm::LogError("GenParticleBlock") << "Error >> Failed to get GenParticleCollection for label: "

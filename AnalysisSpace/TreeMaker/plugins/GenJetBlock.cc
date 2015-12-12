@@ -13,6 +13,7 @@ GenJetBlock::GenJetBlock(const edm::ParameterSet& iConfig) :
   genJetTag_(iConfig.getUntrackedParameter<edm::InputTag>("genJetSrc", edm::InputTag("ak5GenJets"))),
   genJetToken_(consumes<reco::GenJetCollection>(genJetTag_))   
 {
+  produces<std::vector<vhtm::GenJet>>().setBranchAlias("vhtmGenJetVector");
 }
 void GenJetBlock::beginJob() {
   // Get TTree pointer
@@ -21,7 +22,7 @@ void GenJetBlock::beginJob() {
   tree->Branch("GenJet", "std::vector<vhtm::GenJet>", &list_, 32000, -1);
   tree->Branch("nGenJet", &fnGenJet_, "fnGenJet_/I");
 }
-void GenJetBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void GenJetBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and the nObj variables
   list_->clear();
   fnGenJet_ = 0;
@@ -52,6 +53,9 @@ void GenJetBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
         list_->push_back(jet);
       }
       fnGenJet_ = list_->size();
+      //put the vhtm collections in edm
+      std::auto_ptr<std::vector<vhtm::GenJet>> pv1(new std::vector<vhtm::GenJet>(*list_));
+      iEvent.put(pv1,"vhtmGenJetVector");
     }
     else {
       edm::LogError("GenJetBlock") << "Error >> Failed to get GenJetCollection for label: "

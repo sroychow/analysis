@@ -23,6 +23,7 @@ TriggerObjectBlock::TriggerObjectBlock(const edm::ParameterSet& iConfig) :
   hltToken_(consumes<edm::TriggerResults>(hltTag_)),
   objectToken_(consumes<pat::TriggerObjectStandAloneCollection>(objectTag_))
 {
+  produces<std::vector<vhtm::TriggerObject>>().setBranchAlias("vhtmTriggerObjectVector");
 }
 TriggerObjectBlock::~TriggerObjectBlock() {
 }
@@ -50,7 +51,7 @@ void TriggerObjectBlock::beginRun(edm::Run const& iRun, edm::EventSetup const& i
     // In this case, all access methods will return empty values!
   }
 }
-void TriggerObjectBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void TriggerObjectBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and the nObj variables
   list_->clear();
   fnTriggerObject_ = 0;
@@ -110,6 +111,9 @@ void TriggerObjectBlock::analyze(const edm::Event& iEvent, const edm::EventSetup
 	}
       }
       fnTriggerObject_ = list_->size();
+      //put the vhtm collections in edm
+      std::auto_ptr<std::vector<vhtm::TriggerObject>> pv1(new std::vector<vhtm::TriggerObject>(*list_));
+      iEvent.put(pv1,"vhtmTriggerObjectVector");
     }
     else
       edm::LogError("TriggerObjectBlock") << "Failed to get TriggerObjects for label: "

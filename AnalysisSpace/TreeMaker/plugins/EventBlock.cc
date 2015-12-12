@@ -45,6 +45,8 @@ EventBlock::EventBlock(const edm::ParameterSet& iConfig):
   fixedGridRhoFastjetCentralChargedPileUpToken_(consumes<double>(fixedGridRhoFastjetCentralChargedPileUpTag_)),
   fixedGridRhoFastjetCentralNeutralToken_(consumes<double>(fixedGridRhoFastjetCentralNeutralTag_))  
 {
+  produces<std::vector<vhtm::Event>>().setBranchAlias("vhtmEventVector");
+  produces<std::vector<int>>().setBranchAlias("vhtmEventInfo");
 }
 EventBlock::~EventBlock() {
   delete nPU_;
@@ -68,7 +70,7 @@ void EventBlock::beginJob() {
   trueNInt_ = new std::vector<int>();
   tree->Branch("trueNInt", "std::vector<int>", &trueNInt_);
 }
-void EventBlock::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup) {
+void EventBlock::produce(edm::Event const& iEvent, edm::EventSetup const& iSetup) {
   // Reset the vector
   list_->clear();
 
@@ -113,14 +115,6 @@ void EventBlock::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   iEvent.getByToken(fixedGridRhoFastjetCentralNeutralToken_,fixedGridRhoFastjetCentralNeutral);
   ev.fGridRhoFastjetCentralNeutral = *fixedGridRhoFastjetCentralNeutral;
   //
-
-
-
-
-
-
-
-
   // Technical Trigger Part
   if (found && l1GtReadoutRecord.isValid()) {
     edm::LogInfo("EventBlock") << "Successfully obtained L1GlobalTriggerReadoutRecord for label: "
@@ -232,6 +226,16 @@ void EventBlock::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   if (found) ev.nvtx = spVertices->size();
 
   list_->push_back(ev);
+  
+  //put the vhtm collections in edm
+  std::auto_ptr<std::vector<vhtm::Event>> pv1(new std::vector<vhtm::Event>(*list_));
+  iEvent.put(pv1,"vhtmEventVector");
+  std::auto_ptr<std::vector<int>> pv2(new std::vector<int>(*nPU_));
+  iEvent.put(pv2,"nPUVertices");
+  std::auto_ptr<std::vector<int>> pv3(new std::vector<int>(*bunchCrossing_));
+  iEvent.put(pv3,"bunchCrossing");
+  std::auto_ptr<std::vector<int>> pv4(new std::vector<int>(*trueNInt_));
+  iEvent.put(pv4,"nTrueInteractions");
 }
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(EventBlock);
