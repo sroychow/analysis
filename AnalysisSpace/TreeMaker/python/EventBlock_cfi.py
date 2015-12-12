@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-eventBlock = cms.EDAnalyzer("EventBlock",
+eventBlock = cms.EDProducer("EventBlock",
   verbosity = cms.untracked.int32(0),
   l1InputTag = cms.untracked.InputTag('gtDigis'),
   vertexTag = cms.untracked.InputTag('offlineSlimmedPrimaryVertices'),

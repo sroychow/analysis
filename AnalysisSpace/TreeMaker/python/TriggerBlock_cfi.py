@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-triggerBlock = cms.EDAnalyzer("TriggerBlock",
+triggerBlock = cms.EDProducer("TriggerBlock",
   verbosity = cms.untracked.int32(0),
   l1InputTag = cms.untracked.InputTag('gtDigis'),
   hltInputTag = cms.untracked.InputTag('TriggerResults','','HLT'),

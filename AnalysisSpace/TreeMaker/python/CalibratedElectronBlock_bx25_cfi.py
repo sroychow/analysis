@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-calibelectronBlock = cms.EDAnalyzer("ElectronBlock",
+calibelectronBlock = cms.EDProducer("ElectronBlock",
   verbosity = cms.untracked.int32(1),
   beamSpotCorr = cms.untracked.bool(True),
   useTrigMode = cms.untracked.bool(False),
