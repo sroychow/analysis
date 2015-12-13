@@ -16,7 +16,7 @@ VertexBlock::VertexBlock(const edm::ParameterSet& iConfig) :
   vertexTag_(iConfig.getUntrackedParameter<edm::InputTag>("vertexSrc", edm::InputTag("goodOfflinePrimaryVertices"))),
   vertexToken_(consumes<reco::VertexCollection>(vertexTag_))
 {
-  produces<std::vector<vhtm::Vertex>>().setBranchAlias("vhtmVertexVector");
+  produces<std::vector<vhtm::Vertex>>("vhtmVertexVector").setBranchAlias("vhtmVertexVector");
 }
 void VertexBlock::beginJob() {
   // Get TTree pointer

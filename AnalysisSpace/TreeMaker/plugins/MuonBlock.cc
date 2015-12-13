@@ -43,7 +43,7 @@ MuonBlock::MuonBlock(const edm::ParameterSet& iConfig):
   defaultBestMuon_(!iConfig.existsAs<std::string>("customArbitration")),
   bestMuonSelector_(defaultBestMuon_ ? std::string("") : iConfig.getParameter<std::string>("customArbitration"))
 {
-  produces<std::vector<vhtm::Muon>>().setBranchAlias("vhtmMuonVector");
+  produces<std::vector<vhtm::Muon>>("vhtmMuonVector").setBranchAlias("vhtmMuonVector");
 }
 MuonBlock::~MuonBlock() {
 }

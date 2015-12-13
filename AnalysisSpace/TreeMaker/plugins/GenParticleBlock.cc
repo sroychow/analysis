@@ -16,7 +16,7 @@ GenParticleBlock::GenParticleBlock(const edm::ParameterSet& iConfig) :
   genParticleTag_(iConfig.getUntrackedParameter<edm::InputTag>("genParticleSrc", edm::InputTag("genParticles"))),
   genParticleToken_(consumes<reco::GenParticleCollection>(genParticleTag_))
 {
-  produces<std::vector<vhtm::GenParticle>>().setBranchAlias("vhtmGenParticleVector");
+  produces<std::vector<vhtm::GenParticle>>("vhtmGenParticleVector").setBranchAlias("vhtmGenParticleVector");
 }
 GenParticleBlock::~GenParticleBlock() {
 }

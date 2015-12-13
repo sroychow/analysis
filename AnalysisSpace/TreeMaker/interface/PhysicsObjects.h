@@ -225,97 +225,76 @@ namespace vhtm {
   
     ClassDef(GenJet,1)
   };
-  class MET: public TObject {
+  class MET: public TObject {	
   public:
     MET();
     ~MET() {}
-  
     double met;
     double metphi;
     double sumet;
     double metuncorr;
     double metphiuncorr;
     double sumetuncorr;
-  
     ClassDef(MET,1)
   };
   class Tau: public TObject {
   public:
     Tau();
     ~Tau() {}
-  
     double eta;
     double phi;
     double pt;
     double energy;
     int charge;
     double mass;
-  
+    double leadTrkPt;
     double dxyPV;
     double dzPV;
     int vtxIndex;
     double vtxDxy;
     double vtxDz;
-
     // Leading particle pT
     double leadChargedParticlePt;
     double leadNeutralParticlePt;
     double leadParticlePt;
-
     std::vector<vhtm::Candidate> sigChHadList;
     std::vector<vhtm::Candidate> sigNeHadList;
     std::vector<vhtm::Candidate> sigGammaList;
     std::vector<vhtm::Candidate> isoChHadList;
     std::vector<vhtm::Candidate> isoNeHadList;
     std::vector<vhtm::Candidate> isoGammaList;
-
     float ptSumChargedHadronsIsoCone;
     float ptSumNeutralHadronsIsoCone;
     float ptSumPhotonsIsoCone;
-
-     // tau id. discriminators
-     float decayModeFinding;
-     float decayModeFindingNewDMs;
-     float decayModeFindingOldDMs;
-
-     // discriminators against electrons/muons
-     float againstMuonLoose;
-     float againstMuonMedium;
-     float againstMuonTight;
-
-     float againstMuonLoose3;
-     float againstMuonTight3;
-
-     float againstElectronLoose;
-     float againstElectronMedium;
-     float againstElectronTight;
-     //float againstElectronMVA;
-  
-     float againstElectronLooseMVA5;
-     float againstElectronMediumMVA5;
-     float againstElectronTightMVA5;
-
-     float byLooseCombinedIsolationDeltaBetaCorr3Hits;
-     float byMediumCombinedIsolationDeltaBetaCorr3Hits;
-     float byTightCombinedIsolationDeltaBetaCorr3Hits;
-     float byCombinedIsolationDeltaBetaCorrRaw3Hits;
-     float chargedIsoPtSum;
-     float neutralIsoPtSum;
-     float puCorrPtSum;
-
-     // kinematic variables for PFJet associated to PFTau
-    double jetPt;
-    double jetEta;
-    double jetPhi;
-     float emFraction;
+    // tau id. discriminators
+    float decayModeFinding;
+    float decayModeFindingNewDMs;
+    float decayModeFindingOldDMs;
+    // discriminators against electrons/muons
+    float againstMuonLoose;
+    float againstMuonMedium;
+    float againstMuonTight;
+    float againstMuonLoose3;
+    float againstMuonTight3;
+    float againstElectronLoose;
+    float againstElectronMedium;
+    float againstElectronTight;
+    //float againstElectronMVA;
+    float againstElectronLooseMVA5;
+    float againstElectronMediumMVA5;
+    float againstElectronTightMVA5;
+    float byLooseCombinedIsolationDeltaBetaCorr3Hits;
+    float byMediumCombinedIsolationDeltaBetaCorr3Hits;
+    float byTightCombinedIsolationDeltaBetaCorr3Hits;
+    float byCombinedIsolationDeltaBetaCorrRaw3Hits;
+    float chargedIsoPtSum;
+    float neutralIsoPtSum;
+    float puCorrPtSum;
     double vx;
     double vy;
     double vz;
-  
     double zvertex;
-    double dxySig;
-       int selbit;
-  
+    int selbit;
     ClassDef(Tau, 1)
   };
   class Muon: public TObject {

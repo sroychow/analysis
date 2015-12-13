@@ -22,7 +22,7 @@ PackedPFCandidateBlock::PackedPFCandidateBlock(const edm::ParameterSet& iConfig)
   pdgTosave_(iConfig.getParameter<std::vector<int>>("pdgTosave")),
   pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_))
 {
-  produces<std::vector<vhtm::PackedPFCandidate>>().setBranchAlias("vhtmPackedPFCandidateVector");
+  produces<std::vector<vhtm::PackedPFCandidate>>("vhtmPackedPFCandidateVector").setBranchAlias("vhtmPackedPFCandidateVector");
 }
 void PackedPFCandidateBlock::beginJob() 
 {

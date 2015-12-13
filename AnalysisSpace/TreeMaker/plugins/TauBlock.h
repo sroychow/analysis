@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -18,12 +18,12 @@
 namespace vhtm {
   class Tau;
 }
-class TauBlock : public edm::EDAnalyzer
+class TauBlock : public edm::EDProducer
 {
  private:
   virtual void beginJob();
   virtual void beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {}
-  virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup);
+  virtual void produce(edm::Event& iEvent, const edm::EventSetup& iSetup);
   virtual void endJob() {}
 
  public:
@@ -51,3 +51,4 @@ class TauBlock : public edm::EDAnalyzer
   const edm::EDGetTokenT<reco::BeamSpot> bsToken_;
 };
 #endif
+

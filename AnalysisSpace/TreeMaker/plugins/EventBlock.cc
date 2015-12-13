@@ -45,8 +45,10 @@ EventBlock::EventBlock(const edm::ParameterSet& iConfig):
   fixedGridRhoFastjetCentralChargedPileUpToken_(consumes<double>(fixedGridRhoFastjetCentralChargedPileUpTag_)),
   fixedGridRhoFastjetCentralNeutralToken_(consumes<double>(fixedGridRhoFastjetCentralNeutralTag_))  
 {
-  produces<std::vector<vhtm::Event>>().setBranchAlias("vhtmEventVector");
-  produces<std::vector<int>>().setBranchAlias("vhtmEventInfo");
+  produces<std::vector<vhtm::Event>>("vhtmEventVector").setBranchAlias("vhtmEventVector");
+  produces<std::vector<int>>("nPUVertices").setBranchAlias("nPUVertices");
+  produces<std::vector<int>>("bunchCrossing").setBranchAlias("bunchCrossing");
+  produces<std::vector<int>>("nTrueInteractions").setBranchAlias("nTrueInteractions");
 }
 EventBlock::~EventBlock() {
   delete nPU_;

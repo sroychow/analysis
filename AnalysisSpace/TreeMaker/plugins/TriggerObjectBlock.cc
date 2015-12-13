@@ -23,7 +23,7 @@ TriggerObjectBlock::TriggerObjectBlock(const edm::ParameterSet& iConfig) :
   hltToken_(consumes<edm::TriggerResults>(hltTag_)),
   objectToken_(consumes<pat::TriggerObjectStandAloneCollection>(objectTag_))
 {
-  produces<std::vector<vhtm::TriggerObject>>().setBranchAlias("vhtmTriggerObjectVector");
+  produces<std::vector<vhtm::TriggerObject>>("vhtmTriggerObjectVector").setBranchAlias("vhtmTriggerObjectVector");
 }
 TriggerObjectBlock::~TriggerObjectBlock() {
 }

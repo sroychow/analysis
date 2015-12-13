@@ -38,8 +38,9 @@ ElectronBlock::ElectronBlock(const edm::ParameterSet& iConfig):
   mvaCategoriesMapToken_(consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("mvaCategoriesMap"))),
   gsfelectronTokenMVAId_(consumes<edm::View<reco::GsfElectron> >(electronTag_)),
   branchName_(iConfig.getParameter<std::string>("objectbranchName"))
-{
-  produces<std::vector<vhtm::Electron>>().setBranchAlias("vhtmElectronVector");
+{ 
+  std::string collName = "vhtm" + branchName_ + "Vector";
+  produces<std::vector<vhtm::Electron>>(collName).setBranchAlias(collName);
 }
 ElectronBlock::~ElectronBlock() {
 }

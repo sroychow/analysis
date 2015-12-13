@@ -45,20 +45,35 @@
     <version ClassVersion="1" checksum="2142633023" />
   </class>
   <class name="std::vector<vhtm::Electron>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::Electron> >" />
   <class name="std::vector<vhtm::Muon>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::Muon> >" />
   <class name="std::vector<vhtm::Jet>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::Jet> >" />
   <class name="std::vector<vhtm::MET>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::MET> >" />
   <class name="std::vector<vhtm::Tau>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::Tau> >" />
   <class name="std::vector<vhtm::Vertex>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::Vertex> >" />
   <class name="std::vector<vhtm::GenParticle>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::GenParticle> >" />
   <class name="std::vector<vhtm::GenMET>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::GenMET> >" />
   <class name="std::vector<vhtm::GenJet>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::GenJet> >" />
   <class name="std::vector<vhtm::TriggerObject>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::TriggerObject> >" />
   <class name="std::vector<vhtm::Event>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::Event> >" />
   <class name="std::vector<vhtm::GenEvent>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::GenEvent> >" />
   <class name="std::vector<vhtm::Candidate>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::Candidate> >" />
   <class name="std::vector<vhtm::Photon>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::Photon> >" />
   <class name="std::vector<vhtm::PackedPFCandidate>" persistent="true" />
+  <class name="edm::Wrapper<std::vector<vhtm::PackedPFCandidate> >" />
   <class name="std::map<double, std::vector<double> >" persistent="true" />
   <class name="std::map<std::string, std::vector<double> >" persistent="true" />
 </lcgdict>

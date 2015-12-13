@@ -13,7 +13,7 @@ GenMETBlock::GenMETBlock(const edm::ParameterSet& iConfig) :
   genMETTag_(iConfig.getUntrackedParameter<edm::InputTag>("genMETSrc", edm::InputTag("genMetTrue"))),
   genMETToken_(consumes<reco::GenMETCollection>(genMETTag_))
 {
-  produces<std::vector<vhtm::GenMET>>().setBranchAlias("vhtmGenMETVector");
+  produces<std::vector<vhtm::GenMET>>("vhtmGenMETVector").setBranchAlias("vhtmGenMETVector");
 }
 void GenMETBlock::beginJob()
 {

@@ -193,6 +193,7 @@ vhtm::Tau::Tau():
   energy(-999),
   charge(-999),
   mass(-999),
+  leadTrkPt(-999),
   dxyPV(-999),
   dzPV(-999),
   vtxIndex(-1),
@@ -226,13 +227,8 @@ vhtm::Tau::Tau():
   chargedIsoPtSum(-1),
   neutralIsoPtSum(-1),
   puCorrPtSum(-1),
-  jetPt(-999),
-  jetEta(-999),
-  jetPhi(-999),
-  emFraction(-999),
   vx(-999), vy(-999), vz(-999),
   zvertex(-999), 
-  dxySig(-999),
   selbit(0)
 {
   sigChHadList.clear();

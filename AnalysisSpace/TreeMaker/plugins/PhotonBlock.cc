@@ -26,7 +26,7 @@ PhotonBlock::PhotonBlock(const edm::ParameterSet& iConfig) :
   photonToken_(consumes<pat::PhotonCollection>(photonTag_)),
   pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_))
 {
-  produces<std::vector<vhtm::Photon>>().setBranchAlias("vhtmPhotonVector");
+  produces<std::vector<vhtm::Photon>>("vhtmPhotonVector").setBranchAlias("vhtmPhotonVector");
 }
 void PhotonBlock::beginJob() 
 {

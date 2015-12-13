@@ -19,8 +19,8 @@ GenEventBlock::GenEventBlock(const edm::ParameterSet& iConfig) :
   genEventToken_(consumes<GenEventInfoProduct>(genEventTag_)),
   pdfWeightsToken_(consumes< std::vector<double> >(pdfWeightsTag_))
 {
-  produces<std::vector<vhtm::GenEvent>>().setBranchAlias("vhtmGenEventVector");
-  produces<std::vector<double>>().setBranchAlias("pdfWeights");
+  produces<std::vector<vhtm::GenEvent>>("vhtmGenEventVector").setBranchAlias("vhtmGenEventVector");
+  produces<std::vector<double>>("pdfWeights").setBranchAlias("pdfWeights");
 }
 GenEventBlock::~GenEventBlock() {
   delete pdfWeights_;

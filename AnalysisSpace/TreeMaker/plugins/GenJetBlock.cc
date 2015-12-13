@@ -13,7 +13,7 @@ GenJetBlock::GenJetBlock(const edm::ParameterSet& iConfig) :
   genJetTag_(iConfig.getUntrackedParameter<edm::InputTag>("genJetSrc", edm::InputTag("ak5GenJets"))),
   genJetToken_(consumes<reco::GenJetCollection>(genJetTag_))   
 {
-  produces<std::vector<vhtm::GenJet>>().setBranchAlias("vhtmGenJetVector");
+  produces<std::vector<vhtm::GenJet>>("vhtmGenJetVector").setBranchAlias("vhtmGenJetVector");
 }
 void GenJetBlock::beginJob() {
   // Get TTree pointer

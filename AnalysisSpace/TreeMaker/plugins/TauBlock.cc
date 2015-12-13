@@ -4,8 +4,8 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/Common/interface/Ref.h"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
-#include "DataFormats/PatCandidates/interface/TauPFEssential.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "Utilities/General/interface/FileInPath.h"
@@ -31,6 +31,7 @@ TauBlock::TauBlock(const edm::ParameterSet& iConfig) :
   vertexToken_(consumes<reco::VertexCollection>(vertexTag_)),
   bsToken_(consumes<reco::BeamSpot>(bsTag_))
 {
+  produces<std::vector<vhtm::Tau>>("vhtmTauVector").setBranchAlias("vhtmTauVector");
 }
 TauBlock::~TauBlock() {}
 void TauBlock::beginJob()
@@ -41,7 +42,7 @@ void TauBlock::beginJob()
   tree->Branch("Tau", "std::vector<vhtm::Tau>", &list_, 32000, -1);
   tree->Branch("nTau", &fnTau_, "fnTau_/I");
 }
-void TauBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void TauBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and the nObj variables
   list_->clear();
   fnTau_ = 0;
@@ -71,18 +72,19 @@ void TauBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
       tau.pt     = v.pt();
       tau.energy = v.energy();
       tau.charge = v.charge();
-      if (v.leadChargedHadrCand().isNonnull()) {
-        // We know that it returns a PackedCandidate
-        const pat::PackedCandidate& trk = dynamic_cast<const pat::PackedCandidate&>(*v.leadChargedHadrCand());
+#if 0
+      if (v.leadChargedHadrCand().isNonnull() && tb::isValidRef(v.leadChargedHadrCand()->trackRef())) {
+        reco::TrackRef trk = v.leadChargedHadrCand()->trackRef();
+        tau.leadTrkPt      = trk->pt();
 
         if (primaryVertices.isValid()) {
           edm::LogInfo("TauBlock") << "Total # Primary Vertices: " 
                                    << primaryVertices->size();
 
           // IP of leadChargedHadrCand wrt event PV
-          const reco::Vertex& vit = primaryVertices->front();
-          tau.dxyPV = trk.dxy(vit.position());
-          tau.dzPV  = trk.dz(vit.position());
+          auto vit = primaryVertices->begin(); // Highest sumPt vertex
+          tau.dxyPV = trk->dxy(vit->position());
+          tau.dzPV  = trk->dz(vit->position());
 
           // IP of leadChargedHadrCand wrt closest PV
           // Vertex association
@@ -91,8 +93,8 @@ void TauBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
           double vertexDz = 9999.;
           double vertexDxy = 9999.;
           for (auto vit = primaryVertices->begin(); vit != primaryVertices->end(); ++vit) {
-            double dxy = trk.dxy(vit->position());
-            double dz  = trk.dz(vit->position());
+            double dxy = trk->dxy(vit->position());
+            double dz  = trk->dz(vit->position());
             double dist3D = std::sqrt(pow(dxy,2) + pow(dz,2));
             if (dist3D < minVtxDist3D) {
               minVtxDist3D = dist3D;
@@ -110,6 +112,7 @@ void TauBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
                                     << vertexTag_;
         }
       }
+#endif
       // Leading particle pT
       tau.leadChargedParticlePt = 
            v.leadChargedHadrCand().isNonnull() ? v.leadChargedHadrCand()->pt(): 0.;
@@ -132,12 +135,10 @@ void TauBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
         tau.sigNeHadList.push_back(c);
       }
       // Photons
-      double sigPtSumGamma = 0;
       for (const reco::CandidatePtr& iCand: v.signalGammaCands()) {
         const reco::Candidate& cand = (*iCand);
 	vhtm::Candidate c(cand.pt(), cand.eta(), cand.phi());
         tau.sigGammaList.push_back(c);
-        sigPtSumGamma += cand.pt();
       }
       // Isolation Constituents
       // Charged hadrons
@@ -172,20 +173,20 @@ void TauBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
       // tau id. discriminators
       tau.decayModeFinding = v.tauID("decayModeFinding");
       tau.decayModeFindingNewDMs = v.tauID("decayModeFindingNewDMs");
-      //      tau.decayModeFindingOldDMs = v.tauID("decayModeFindingOldDMs");
+//      tau.decayModeFindingOldDMs = v.tauID("decayModeFindingOldDMs");
 
       // discriminators against muons
-      tau.againstMuonLoose  = v.tauID("againstMuonLoose");
-      tau.againstMuonMedium = v.tauID("againstMuonMedium");
-      tau.againstMuonTight  = v.tauID("againstMuonTight");
+      //tau.againstMuonLoose  = v.tauID("againstMuonLoose");
+      //tau.againstMuonMedium = v.tauID("againstMuonMedium");
+      //tau.againstMuonTight  = v.tauID("againstMuonTight");
 
       tau.againstMuonLoose3  = v.tauID("againstMuonLoose3");
       tau.againstMuonTight3 = v.tauID("againstMuonTight3");
 
       // discriminators against electrons
-      tau.againstElectronLoose  = v.tauID("againstElectronLoose");
-      tau.againstElectronMedium = v.tauID("againstElectronMedium");
-      tau.againstElectronTight  = v.tauID("againstElectronTight");
+      //tau.againstElectronLoose  = v.tauID("againstElectronLoose");
+      //tau.againstElectronMedium = v.tauID("againstElectronMedium");
+      //tau.againstElectronTight  = v.tauID("againstElectronTight");
 
       tau.againstElectronLooseMVA5  = v.tauID("againstElectronLooseMVA5");
       tau.againstElectronMediumMVA5 = v.tauID("againstElectronMediumMVA5");
@@ -202,18 +203,21 @@ void TauBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
       tau.neutralIsoPtSum = v.tauID("neutralIsoPtSum");
       tau.puCorrPtSum     = v.tauID("puCorrPtSum");
 #if 0
-      // who wants to store all the tauIDs?
       std::cout << ">>> tauID(label) = value" << std::endl;
       for (const pat::Tau::IdPair& pa: v.tauIDs())
 	std::cout << pa.first << "=" << pa.second << std::endl;
 #endif
       // kinematic variables for PFJet associated to PFTau
-      tau.jetPt  = v.pfEssential().p4Jet_.Pt();
-      tau.jetEta = v.pfEssential().p4Jet_.Eta();
-      tau.jetPhi = v.pfEssential().p4Jet_.Phi();
-
-      // The following has to be computed from the PackedCandidates of Tau within the signal cone(?)
-      tau.emFraction = (sigPtSumGamma > 0) ? sigPtSumGamma/v.pt() : 0;
+#if 0
+      if (tb::isValidRef(v.pfJetRef())) {
+        const reco::PFJetRef &jtr = v.pfJetRef();
+        tau.jetPt  = jtr->pt();
+        tau.jetEta = jtr->eta();
+        tau.jetPhi = jtr->phi();
+      }
+      // NEW quantities
+      tau.emFraction = v.emFraction();
+#endif
 
       // Vertex information
       const reco::Candidate::Point& vertex = v.vertex();
@@ -223,13 +227,18 @@ void TauBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
 
       tau.zvertex = v.vz(); // distance from the primary vertex
       tau.mass    = v.p4().M();
-
-      tau.dxySig = v.dxy_Sig();
+#if 0
+      tau.ltsipt  = TMath::Abs(v.leadChargedHadrCandsignedSipt());
+#endif
+      // pat::Tau now has reference to the primary vertex also
 
       // add particle to the list
       list_->push_back(tau);
     }
     fnTau_ = list_->size();
+    //put the vhtm collections in edm
+    std::auto_ptr<std::vector<vhtm::Tau>> pv1(new std::vector<vhtm::Tau>(*list_));
+    iEvent.put(pv1,"vhtmTauVector");
   }
   else {
     edm::LogError("TauBlock") << "Error! Failed to get pat::Tau collection for label: "
@@ -238,3 +247,4 @@ void TauBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
 }
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(TauBlock);
+

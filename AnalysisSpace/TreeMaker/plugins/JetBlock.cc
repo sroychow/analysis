@@ -21,7 +21,7 @@ JetBlock::JetBlock(const edm::ParameterSet& iConfig) :
   jetTag_(iConfig.getUntrackedParameter<edm::InputTag>("jetSrc",  edm::InputTag("selectedPatJets"))),
   jetToken_(consumes<pat::JetCollection>(jetTag_))
 {
-  produces<std::vector<vhtm::Jet>>().setBranchAlias("vhtmJetVector");
+  produces<std::vector<vhtm::Jet>>("vhtmJetVector").setBranchAlias("vhtmJetVector");
 }
 void JetBlock::beginJob()
 {
