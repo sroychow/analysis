@@ -1,0 +1,185 @@
+#include <iostream>
+#include <algorithm>
+#include<iomanip>
+#include "TTree.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+
+#include "DataFormats/GeometryVector/interface/GlobalVector.h"
+#include "DataFormats/GeometryVector/interface/GlobalPoint.h"
+
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+
+#include "DataFormats/Math/interface/deltaR.h"
+#include "AnalysisSpace/TreeMaker/plugins/PackedPFCandidateBlock.h"
+#include "AnalysisSpace/TreeMaker/interface/Utility.h"
+
+// Constructor
+PackedPFCandidateBlock::PackedPFCandidateBlock(const edm::ParameterSet& iConfig) :
+  verbosity_(iConfig.getUntrackedParameter<int>("verbosity", 0)),
+  pfcandTag_(iConfig.getUntrackedParameter<edm::InputTag>("pfCands",edm::InputTag("packedPFCandidates"))), 
+  pdgTosave_(iConfig.getParameter<std::vector<int>>("pdgTosave")),
+  pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_))
+{}
+void PackedPFCandidateBlock::beginJob() 
+{
+  // Get TTree pointer
+  std::string tree_name = "vhtree";
+  TTree* tree = vhtm::Utility::getTree(tree_name);
+  list_ = new std::vector<vhtm::PackedPFCandidate>();
+  tree->Branch("PackedPFCandidate", "std::vector<vhtm::PackedPFCandidate>", &list_, 32000, -1);
+  tree->Branch("nPackedPFCandidate", &fnPackedPFCandidate_, "fnPackedPFCandidate_/I");
+}
+void PackedPFCandidateBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  // Reset the TClonesArray and the nObj variables
+  list_->clear();
+  fnPackedPFCandidate_ = 0;
+
+  edm::Handle<pat::PackedCandidateCollection> pfs;
+  iEvent.getByToken(pfToken_, pfs);
+
+  
+  if ( pfs.isValid()) {
+    edm::LogInfo("PackedPFCandidateBlock") << "Total # PackedPFCandidate: " << pfs->size();
+    if(verbosity_)
+    std::cout<<"PFCollection Size in MiniAOD"<<pfs->size() <<std::endl;
+    for (pat::PackedCandidate const& v: *pfs) {
+      //if (list_->size() == kMaxPhoton) {
+      //	edm::LogInfo("PackedPFCandidate") << "Too many PAT Photon, fnPhoton = " 
+      //                              << fnPhoton_; 
+      //	break;
+      //}
+
+      int pdg = std::abs(v.pdgId());
+      if( std::find(pdgTosave_.begin(),  pdgTosave_.end(), pdg) == pdgTosave_.end() || v.pt() <=2. ) continue;
+      
+      //if( pdg != std::abs(11) && pdg != std::abs(13) &&
+      //    pdg != std::abs(15) && pdg != std::abs(22) 
+      //  ) continue;
+
+      vhtm::PackedPFCandidate pfCand;
+      
+      pfCand.pt = v.pt();
+      pfCand.eta = v.eta();
+      pfCand.phi = v.phi();
+      pfCand.energy = v.energy();
+      
+      pfCand.pdgId = v.pdgId();
+      pfCand.charge = v.charge();
+   
+      pfCand.vx = v.vx();
+      pfCand.vz = v.vz();
+      pfCand.vz = v.vz();
+     
+      pfCand.fromPV = v.fromPV();
+      pfCand.dxy = v.dxy();
+      pfCand.dz = v.dz();
+      pfCand.dxyError = v.dxyError();   
+      pfCand.dzError = v.dzError();   
+
+      std::vector<double> isotemp;   
+      calcIsoFromPF(0.30, pfs, v, isotemp);
+      pfCand.isolationMap["c30"] = isotemp;
+
+      list_->push_back(pfCand);
+    }
+    fnPackedPFCandidate_ = list_->size();
+    if(verbosity_)
+      std::cout << "PFCollection Size saved in tree " << list_->size() <<std::endl;
+
+  }
+  else {
+    edm::LogError("PackedPFCandidateBlock") << "Error >> Failed to get pat::PackedPFCandidateBlock for label: " 
+                                 << pfcandTag_;
+  }
+}
+void PackedPFCandidateBlock::calcIsoFromPF(double cone, edm::Handle<pat::PackedCandidateCollection>& pfs, const pat::PackedCandidate& v, std::vector<double>& iso)
+{
+  // initialize sums
+   double chargedhad = 0., chargedSum = 0., neutral = 0., photon = 0., pileup  = 0;
+  // now get a list of the PF candidates used to build this lepton, so to exclude them
+  std::vector<reco::CandidatePtr> footprint;
+  std::vector< std::pair<int,double> >  chargedhadPdgPt,chargedSumPdgPt,neutralPdgPt,photonPdgPt,pileupPdgPt;
+  for (unsigned int i = 0, n = v.numberOfSourceCandidatePtrs(); i < n; ++i) {
+    footprint.push_back(v.sourceCandidatePtr(i));
+  }
+  // now loop on pf candidates
+  for (unsigned int i = 0, n = pfs->size(); i < n; ++i) {
+    const pat::PackedCandidate &pf = (*pfs)[i];
+    double dRcone = deltaR(pf,v);
+    if ( dRcone < cone ) {
+      //pfcandidate-based footprint removal
+      if (std::find(footprint.begin(), footprint.end(), reco::CandidatePtr(pfs,i)) != footprint.end()) {
+        continue;
+      }
+      if( pf.charge() == 0 && pf.pt() > 0.5 && dRcone > 0.01 ) {
+          if( pf.pdgId() == 22 ) {
+            photon += pf.pt();
+            photonPdgPt.push_back(std::make_pair( pf.pdgId(),pf.pt() ));
+          }
+          else { 
+            neutral += pf.pt();
+            neutralPdgPt.push_back(std::make_pair( pf.pdgId(),pf.pt() ));
+          }
+      } else if( pf.pt() > 0.2 && dRcone > 0.0001 ) { 
+          if( pf.fromPV() >= 2 ) {
+            int pdg = std::abs(pf.pdgId());
+            if( pdg!=13 && pdg!=11  ) {
+              chargedhad += pf.pt();
+              chargedSum += pf.pt();
+              chargedhadPdgPt.push_back(std::make_pair( pf.pdgId(),pf.pt() ));
+              chargedSumPdgPt.push_back(std::make_pair( pf.pdgId(),pf.pt() ));
+            } else {
+              chargedSum += pf.pt();
+              chargedSumPdgPt.push_back(std::make_pair( pf.pdgId(),pf.pt() ));
+            }
+          } else { 
+              pileup += pf.pt();
+              pileupPdgPt.push_back(std::make_pair( pf.pdgId(),pf.pt() ));
+          }
+      }
+    }
+  }
+  iso.push_back(chargedhad);
+  iso.push_back(chargedSum);
+  iso.push_back(neutral);
+  iso.push_back(photon);
+  iso.push_back(pileup);
+  if(verbosity_) {
+  std::cout<<"Infomation of PackedPFCandidate Isolation Calculation" <<std::endl;
+  std::cout <<"Number of Charged Hadrons within cone " << cone << "=" << chargedhadPdgPt.size() << std::endl;
+  for( auto& p:chargedhadPdgPt)
+    std::cout<< std::setw(4) << p.first << "\t" << std::setw(6) << p.second << std::endl;
+
+  std::cout <<"Number of Charged Hadrons + e/muwithin cone " << cone << "=" << chargedSumPdgPt.size() << std::endl;
+  for( auto& p:chargedSumPdgPt)
+    std::cout<< std::setw(4) << p.first << "\t" << std::setw(6) << p.second << std::endl;
+
+  std::cout <<"Number of Neutral  Hadrons within cone " << cone << "=" << neutralPdgPt.size() << std::endl;
+  for( auto& p:neutralPdgPt)
+    std::cout<< std::setw(4) << p.first << "\t" << std::setw(6) << p.second << std::endl;
+
+  std::cout <<"Number of Photons within cone " << cone << "=" << photonPdgPt.size() << std::endl;
+  for( auto& p:photonPdgPt)
+    std::cout<< std::setw(4) << p.first << "\t" << std::setw(6) << p.second << std::endl;
+
+  std::cout <<"Number of PU contirbution within cone " << cone << "=" << pileupPdgPt.size() << std::endl;
+  for( auto& p:pileupPdgPt)
+    std::cout<< std::setw(4) << p.first << "\t" << std::setw(6) << p.second << std::endl;
+
+  std::cout << "Values saved in tree " << std::endl;
+  double dbiso = chargedhad + std::max(0.0, neutral +  photon - 0.5*pileup);
+  std::cout << " ChargedHadron=" << chargedhad 
+            << "\t ChargedSumPt=" << chargedSum 
+            << "\t NeutralHadron=" << neutral
+            << "\t Photon=" << photon 
+            << "\t Pileup=" << pileup 
+            << "\t dbIso=" << dbiso 
+            << "\t absIso=" << dbiso/v.pt() << std::endl; 
+  }
+
+}
+#include "FWCore/Framework/interface/MakerMacros.h"
+DEFINE_FWK_MODULE(PackedPFCandidateBlock);
+

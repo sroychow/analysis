@@ -1,0 +1,5 @@
+<use name="AnalysisSpace/OnlineAnalysis" />
+
+<library file="*.cc" name="OnlineAnalysisPlugins">
+  <flags EDM_PLUGIN="1" />
+</library>
