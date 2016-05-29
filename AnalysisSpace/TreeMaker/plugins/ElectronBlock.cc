@@ -31,14 +31,13 @@ ElectronBlock::ElectronBlock(const edm::ParameterSet& iConfig):
   bsToken_(consumes<reco::BeamSpot>(bsTag_)),
   vertexToken_(consumes<reco::VertexCollection>(vertexTag_)),
   electronToken_(consumes<pat::ElectronCollection>(electronTag_)),
-  pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_))
+  pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_)),
+  eleMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap"))),
+  eleTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleTightIdMap"))),
+  mvaValuesMapToken_(consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("mvaValuesMap"))),
+  mvaCategoriesMapToken_(consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("mvaCategoriesMap"))),
+  gsfelectronTokenMVAId_(consumes<edm::View<reco::GsfElectron> >(electronTag_))
 {
-  //mvaValuesMapToken_(consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("mvaValuesMap"))),
-  //mvaCategoriesMapToken_(consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("mvaCategoriesMap"))),
-  //gsfelectronTokenMVAId_(consumes<edm::View<reco::GsfElectron> >(electronTag_))
-  //eleMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap"))),
-  //eleTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleTightIdMap")))
-
 }
 ElectronBlock::~ElectronBlock() {
 }
@@ -59,24 +58,24 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   edm::Handle<pat::ElectronCollection> electrons;
   bool found = iEvent.getByToken(electronToken_, electrons);
 
-  //edm::Handle<edm::View<reco::GsfElectron> > gsfelectrons;
-  //iEvent.getByToken(gsfelectronTokenMVAId_, gsfelectrons);
+  edm::Handle<edm::View<reco::GsfElectron> > gsfelectrons;
+  iEvent.getByToken(gsfelectronTokenMVAId_, gsfelectrons);
   //bool gsf_found = iEvent.getByToken(gsfelectronTokenMVAId_, gsfelectrons);
   //if( gsf_found ) std::cout << "GSF Found" << std::endl;
 
   edm::Handle<pat::PackedCandidateCollection> pfs;
   iEvent.getByToken(pfToken_, pfs);
 
-  //edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
-  //edm::Handle<edm::ValueMap<bool> > tight_id_decisions; 
-  //iEvent.getByToken(eleMediumIdMapToken_,medium_id_decisions);
-  //iEvent.getByToken(eleTightIdMapToken_,tight_id_decisions);
+  edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > tight_id_decisions; 
+  iEvent.getByToken(eleMediumIdMapToken_,medium_id_decisions);
+  iEvent.getByToken(eleTightIdMapToken_,tight_id_decisions);
 
   // Get MVA values and categories (optional)
-  //edm::Handle<edm::ValueMap<float> > mvaValues;
-  //edm::Handle<edm::ValueMap<int> > mvaCategories;
-  //iEvent.getByToken(mvaValuesMapToken_,mvaValues);
-  //iEvent.getByToken(mvaCategoriesMapToken_,mvaCategories);
+  edm::Handle<edm::ValueMap<float> > mvaValues;
+  edm::Handle<edm::ValueMap<int> > mvaCategories;
+  iEvent.getByToken(mvaValuesMapToken_,mvaValues);
+  iEvent.getByToken(mvaCategoriesMapToken_,mvaCategories);
 
   if (found && electrons.isValid()) {
     edm::Handle<reco::BeamSpot> beamSpot;
@@ -88,7 +87,7 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     edm::LogInfo("ElectronBlock") << "Total # PAT Electrons: " << electrons->size();
     
     //auto gsfit = gsfelectrons->begin();
-    //unsigned int gsfeleidx = 0;
+    unsigned int gsfeleidx = 0;
     for (const pat::Electron& v: *electrons) {
       if (list_->size() == kMaxElectron_) {
         edm::LogInfo("ElectronBlock") << "Too many PAT Electrons, fnElectron = "
@@ -112,14 +111,15 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       double dzWrtPV = -99.;
       
       //storing of ele id decisions
-      //const auto gsfel = gsfelectrons->ptrAt(gsfeleidx);
-      //electron.passMediumId = (*medium_id_decisions)[gsfelgsfel];
-      //electron.passTightId = (*tight_id_decisions)[gsfel];
-      //electron.BDT = (*mvaValues)[gsfel]; 
-      //electron.mvaCategory = (*mvaCategories)[gsfel];
-      //gsfeleidx++;
+      const auto gsfel = gsfelectrons->ptrAt(gsfeleidx);
+      electron.passMediumId = (*medium_id_decisions)[gsfel];
+      electron.passTightId = (*tight_id_decisions)[gsfel];
+      electron.BDT = (*mvaValues)[gsfel]; 
+      electron.mvaCategory = (*mvaCategories)[gsfel];
+      gsfeleidx++;
 
-      electron.BDTpreComp = v.userFloat("ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values");
+      electron.BDTpreComp = v.userFloat("ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values"); 
+
       if (hasGsfTrack) {
         reco::GsfTrackRef tk = v.gsfTrack();
         electron.trackPt = tk->pt();

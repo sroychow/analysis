@@ -17,7 +17,6 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
 #include "AnalysisSpace/OnlineAnalysis/plugins/FSRBlock.h"
-#include "AnalysisSpace/OnlineAnalysis/src/HZZ4lUtil.h"
 
 
 //
@@ -88,9 +87,8 @@ FSRBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     0.2 GeV on charged hadrons with a veto cone of 0.0001, and 
     0.5 GeV on neutral hadrons and photons with a veto cone of 0.01, 
     including also the contribution from PU vertices (same radius and threshold as per charged isolation) .
-    Supercluster veto by PF reference: veto all the PF candidates used in the PF cluster, 
-    as returned by the method electron.associatedPackedPFCandidates() 
-   (this is different from Moriond 2016 analysis - for details see Giovani's presentation),
+    Supercluster veto: remove all PF photons that match with any electron passing loose ID and SIP cuts; 
+    matching is according to (|Δφ| < 2, |Δη| < 0.05) OR (ΔR < 0.15), with respect to the electron's supercluster. 
   */
   if (found && pfs.isValid()) {
   //std::cout << "Point 2a" << std::endl;  
@@ -244,20 +242,31 @@ void FSRBlock::calcIsoFromPF(const pat::PackedCandidate& v,
 
 
 bool FSRBlock::passedSuperClusterVeto(const pat::PackedCandidate& pfcand, edm::Handle<pat::ElectronCollection>& le, bool verbose) {
-  // Supercluster veto by PF reference: veto all the PF candidates used in the PF cluster, 
-  // as returned by the method electron.associatedPackedPFCandidates()
+  //Supercluster veto: remove all PF photons that match with any electron passing loose ID and SIP cuts; 
+  // matching is according to (|deta| < 2, |dphi| < 0.05) OR (dR < 0.15), with respect to the electron's supercluster. 
   bool passedVeto = true;
   if (verbose && le->size())
     std::cout << "    pfPt   pfEta   pfPhi   elePt   scEta  elePhi    dEta    dPhi      dR" << std::endl;
   for (const auto& ele: *le) {
-    const auto& pfref = ele.associatedPackedPFCandidates();
-    for(edm::RefVector<pat::PackedCandidateCollection>::const_iterator it = pfref.begin();  it!=pfref.end(); it++) {
-      TLorentzVector p4ref;
-      p4ref.SetPtEtaPhiE((*it)->pt(),(*it)->eta(),(*it)->phi(),(*it)->energy());
-      if(p4ref == HZZ4lUtil::getP4(pfcand)) {
-        passedVeto = false;
-        break;
-      }
+    double deta = ele.superCluster()->eta() - pfcand.eta();
+    double dphi = TVector2::Phi_mpi_pi(ele.superCluster()->phi() - pfcand.phi());
+    float dR = std::sqrt(deta * deta + dphi * dphi);
+    if (verbose) {
+      std::cout << std::setprecision(3);
+      std::cout << std::setw(8) << pfcand.pt()
+	   << std::setw(8) << pfcand.eta()
+	   << std::setw(8) << pfcand.phi()
+	   << std::setw(8) << ele.pt()
+	   << std::setw(8) << ele.superCluster()->eta()
+	   << std::setw(8) << ele.superCluster()->phi()
+	   << std::setw(8) << deta
+	   << std::setw(8) << dphi
+	   << std::setw(8) << dR
+	   << std::endl;
+    }
+    if ( (std::fabs(deta) < 0.05 && std::fabs(dphi) < 2.0) || dR < 0.15 ) {
+      passedVeto = false;
+      break;
     }
   }
   return passedVeto;

@@ -61,14 +61,14 @@ private:
   const edm::EDGetTokenT<pat::PackedCandidateCollection> pfToken_;
 
   // ID decisions objects
-  //edm::EDGetTokenT<edm::ValueMap<bool> > eleMediumIdMapToken_;
-  //edm::EDGetTokenT<edm::ValueMap<bool> > eleTightIdMapToken_;
+  edm::EDGetTokenT<edm::ValueMap<bool> > eleMediumIdMapToken_;
+  edm::EDGetTokenT<edm::ValueMap<bool> > eleTightIdMapToken_;
   
   // MVA values and categories (optional)
-  //edm::EDGetTokenT<edm::ValueMap<float> > mvaValuesMapToken_;
-  //edm::EDGetTokenT<edm::ValueMap<int> > mvaCategoriesMapToken_;
+  edm::EDGetTokenT<edm::ValueMap<float> > mvaValuesMapToken_;
+  edm::EDGetTokenT<edm::ValueMap<int> > mvaCategoriesMapToken_;
 
-  //edm::EDGetToken gsfelectronTokenMVAId_;
+  edm::EDGetToken gsfelectronTokenMVAId_;
 
 };
 #endif

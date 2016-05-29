@@ -36,7 +36,7 @@ class HZZFourLMuonSelector : public edm::stream::EDProducer<> {
       virtual void endJob() /*override*/;
       virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
       virtual void beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {}
-      bool isTrackerHighPt(const pat::Muon & mu, const reco::Vertex & primaryVertex);
+
       //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
       //virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
       //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;

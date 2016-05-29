@@ -117,14 +117,12 @@ HZZFourLMuonSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    reco::TrackRef tk = mu.muonBestTrack();
 	    double dxyWrtPV = -99.;
 	    double dzWrtPV = -99.;
-            bool highPtid = false;
 	    if (primaryVertices.isValid()) {
 	      edm::LogInfo("HZZFourLMuonSelector") << "Total # Primary Vertices: " << primaryVertices->size();
 
 	      const reco::Vertex& vit = primaryVertices->front(); // Highest sumPt vertex
 	      dxyWrtPV = tk->dxy(vit.position());
 	      dzWrtPV  = tk->dz(vit.position());
-              highPtid = isTrackerHighPt(mu,vit) && mu.pt() > 20;
 	    }
 	    if(dxyWrtPV >= 0.5 )      continue;
             if(dzWrtPV >= 1.)         continue;
@@ -135,8 +133,7 @@ HZZFourLMuonSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
             looselist_->push_back(mu);
             if(std::fabs(mu.dB(pat::Muon::PV3D)/mu.edB(pat::Muon::PV3D)) >= 4.)    continue;
             looseSIPlist_->push_back(mu);
-            bool isTight = mu.isPFMuon() || highPtid;
-            if(!isTight)    continue; 
+            if(!mu.isPFMuon())    continue; 
             tightlist_->push_back(mu);
 	  }
 	}
@@ -149,16 +146,6 @@ HZZFourLMuonSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	iEvent.put(pv3,tightMuOutputColl_);
   //std::cout << "Leaving HZZFourLMuonSelector::produce" << std::endl;
 }
-
-bool HZZFourLMuonSelector::isTrackerHighPt(const pat::Muon & mu, const reco::Vertex & primaryVertex) {
-        return ( mu.numberOfMatchedStations() > 1 
-                         && (mu.muonBestTrack()->ptError()/mu.muonBestTrack()->pt()) < 0.3 
-                         && std::abs(mu.muonBestTrack()->dxy(primaryVertex.position())) < 0.2 
-                         && std::abs(mu.muonBestTrack()->dz(primaryVertex.position())) < 0.5 
-                         && mu.innerTrack()->hitPattern().numberOfValidPixelHits() > 0 
-                         && mu.innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 );
-}
-
 
 // ------------ method called once each stream before processing any runs, lumis or events  ------------
 void
