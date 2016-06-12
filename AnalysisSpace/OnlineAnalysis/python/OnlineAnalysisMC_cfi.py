@@ -10,8 +10,8 @@ from AnalysisSpace.OnlineAnalysis.ZZCandidateProducer_cfi import *
 from AnalysisSpace.OnlineAnalysis.Final4lEventAnalyzerMC_cfi import *
 
 onlineSelector = cms.Sequence(
-  electronSelectorBlock 
-  * muonSelectorBlock 
+  muonSelectorBlock 
+  * electronSelectorBlock 
   * fsrBlock
   * isoLeptonProducer
   * zCandidateProducer
