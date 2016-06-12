@@ -144,7 +144,8 @@ vhtm::SelectedEvent::SelectedEvent() :
       category(0),
       m4lRefit(0.),
       m4lRefitError(0.),
-      weight(0.)	
+      weight(0.),
+      flavour(4)	
 {
       kd["Dgg10_VAMCFM"] = -1.; 
       kd["D_bkg_kin"] = -1.; 
@@ -173,6 +174,7 @@ void vhtm::SelectedEvent::reset()
       kd["D_bkg"] = -1.; 
       kd["D_g4"] = -1.; 
       kd["Djet_VAJHU"] = -1.;
+      flavour = 4;
 }
   
 

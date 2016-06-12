@@ -69,6 +69,7 @@ class HZZFourLElectronSelector : public edm::stream::EDProducer<> {
       virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) /*override*/;
       virtual void produce(edm::Event&, const edm::EventSetup&) override;
       virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) /*override*/;
+      bool leptonCrosscleaned(const pat::Electron& ele,const edm::Handle<pat::MuonCollection>& muVec);
       //bool passBDT(const double fSCeta, const double pt, const double BDT);
       //virtual void endStream() override;
       
@@ -80,10 +81,12 @@ class HZZFourLElectronSelector : public edm::stream::EDProducer<> {
 
       const edm::InputTag vertexTag_;
       const edm::InputTag electronTag_;
+      const edm::InputTag tightSIPMuonTag_;
 
 
       const edm::EDGetTokenT<reco::VertexCollection> vertexToken_;
       const edm::EDGetTokenT<pat::ElectronCollection> electronToken_;
+      const edm::EDGetTokenT<pat::MuonCollection> tightSIPMuonToken_;
 
       const std::string looseEleOutputColl_;
       const std::string looseSIPEleOutputColl_;

@@ -51,6 +51,10 @@ Final4lEventAnalyzer::Final4lEventAnalyzer(const edm::ParameterSet& iConfig) :
              << std::endl;
    //now do what ever initialization is needed
    //usesResource("TFileService");
+   n4mu = 0;
+   n4e = 0;
+   n2e2mu = 0;
+   n2mu2e = 0;
 }
 
 
@@ -142,10 +146,15 @@ Final4lEventAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& i
        selev_->nJets = nJets;
        selev_->jet1pt = jet1P4.Pt();
        selev_->jet2pt = jet2P4.Pt();
-       //selev_->category;
-       //selev_->m4lRefit;
-       //selev_->m4lRefitError;
+       selev_->category = cat;
+       selev_->m4lRefit = m4lrefit;
+       selev_->m4lRefitError = m4lrefit;
        //selev_->weight;
+       selev_->flavour = selectedZZ.flavour;
+       if(selectedZZ.flavour == HZZ4lUtil::ZZType::eeee)   n4e++;
+       else if(selectedZZ.flavour == HZZ4lUtil::ZZType::mmmm)   n4mu++;
+       else if(selectedZZ.flavour == HZZ4lUtil::ZZType::mmee)   n2mu2e++;
+       else if(selectedZZ.flavour == HZZ4lUtil::ZZType::eemm)   n2e2mu++;     
      //}
    }
    //std::cout << "DEBUG P6" << std::endl;
@@ -347,6 +356,12 @@ Final4lEventAnalyzer::endJob()
 {
   delete kinZfitter_;
   syncDumpf_.close();
+  std::cout << "<<<<Final4l Selected Numbers>>>>"
+            << "\n4mu = " << n4mu
+            << "\n4e = " << n4e
+            << "\n2e2mu = " << n2e2mu
+            << "\n2mu2e = " << n2mu2e
+	    << std::endl; 
 }
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void

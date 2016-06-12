@@ -106,6 +106,7 @@ class SelectedEvent : public TObject {
     double m4lRefit;
     double m4lRefitError;
     double weight;
+    int flavour;//0=4mu,1=4e,2=2e2mu,3=2mu2e,4=wrong
     void reset();
     ClassDef(SelectedEvent,1)
 };

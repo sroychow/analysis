@@ -15,7 +15,7 @@
     <version ClassVersion="1" checksum="2140623694" />
   </class>
   <class name="vhtm::SelectedEvent" ClassVersion="1">
-    <version ClassVersion="1" checksum="397698678" />
+    <version ClassVersion="1" checksum="3126085324" />
   </class>
   <class name="std::pair<pat::Electron,std::vector<pat::PackedCandidate>>" />
   <class name="std::vector<std::pair<pat::Electron,std::vector<pat::PackedCandidate>>>" />
