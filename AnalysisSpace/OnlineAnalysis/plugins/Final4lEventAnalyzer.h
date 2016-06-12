@@ -66,5 +66,9 @@ class Final4lEventAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResourc
       bool runStandalone_; 
       bool computeKD_;
       bool isData_;
+      int n4mu;
+      int n4e;
+      int n2e2mu;
+      int n2mu2e;
 };
 #endif
