@@ -14,6 +14,7 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
 
 #include "AnalysisSpace/OnlineAnalysis/plugins/HZZFourLElectronSelector.h"
 #include "AnalysisSpace/OnlineAnalysis/src/HZZ4lUtil.h"
@@ -25,8 +26,10 @@ HZZFourLElectronSelector::HZZFourLElectronSelector(const edm::ParameterSet& iCon
   verbosity_(iConfig.getUntrackedParameter<int>("verbosity", 0)),
   vertexTag_(iConfig.getUntrackedParameter<edm::InputTag>("vertexSrc", edm::InputTag("goodOfflinePrimaryVertices"))),
   electronTag_(iConfig.getUntrackedParameter<edm::InputTag>("electronSrc", edm::InputTag("selectedPatElectrons"))),
+  tightSIPMuonTag_(iConfig.getUntrackedParameter<edm::InputTag>("tightSIPMuonSrc",edm::InputTag("tightSIPMuonVector"))),
   vertexToken_(consumes<reco::VertexCollection>(vertexTag_)),
   electronToken_(consumes<pat::ElectronCollection>(electronTag_)),
+  tightSIPMuonToken_(consumes<pat::MuonCollection>(tightSIPMuonTag_)),
   looseEleOutputColl_(iConfig.getUntrackedParameter<std::string>("looseElecoll","looseElectronVector")),
   looseSIPEleOutputColl_(iConfig.getUntrackedParameter<std::string>("looseSIPElecoll","looseSIPElectronVector")),
   tightEleOutputColl_(iConfig.getUntrackedParameter<std::string>("tightElecoll","tightElectronVector"))
@@ -70,6 +73,9 @@ HZZFourLElectronSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSe
    edm::Handle<pat::ElectronCollection> electrons;
    bool found = iEvent.getByToken(electronToken_, electrons);
    edm::LogInfo("HZZFourLElectronSelector") << "Total # of Electrons: " << electrons->size();
+   
+   edm::Handle<pat::MuonCollection> muons;
+   iEvent.getByToken(tightSIPMuonToken_, muons);
    //std::cout << "Total # of Electrons: " <<electrons->size()<<std::endl;
 
    if (found && electrons.isValid()) {
@@ -105,6 +111,7 @@ HZZFourLElectronSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSe
        if(dzWrtPV >= 1.) continue;
        looselist_->push_back(ele);
        if(std::fabs(ele.dB(pat::Electron::PV3D)/ele.edB(pat::Electron::PV3D)) >= 4.)    continue;
+       if(!leptonCrosscleaned(ele,muons))   continue;
        looseSIPlist_->push_back(ele);
        if(HZZ4lUtil::passBDT(std::fabs(ele.superCluster()->eta()), 
                   ele.pt(), 
@@ -121,28 +128,18 @@ HZZFourLElectronSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   //std::cout << "Leaving HZZFourLElectronSelector::produce" << std::endl;
 }
 
-
-//method to check tight electron condition
-/*
-float fSCeta = fabs(l.superCluster()->eta());
-bool isBDT = (pt<=10 && ((fSCeta<0.8                  && BDT > -0.265) ||
-                         (fSCeta>=0.8 && fSCeta<1.479 && BDT > -0.556) ||
-                         (fSCeta>=1.479               && BDT > -0.551))) 
-          || (pt>10  && ((fSCeta<0.8                  && BDT > -0.072) ||
-                         (fSCeta>=0.8 && fSCeta<1.479 && BDT > -0.286) || 
-                         (fSCeta>=1.479               && BDT > -0.267)));
-*/
-/*
-bool HZZFourLElectronSelector::passBDT(const double fSCeta, const double pt, const double BDT) {
-  bool isBDT = (pt<=10 && ((fSCeta<0.8                  && BDT > -0.265) ||
-                           (fSCeta>=0.8 && fSCeta<1.479 && BDT > -0.556) ||
-                           (fSCeta>=1.479               && BDT > -0.551)))
-            || (pt>10  && ((fSCeta<0.8                  && BDT > -0.072) ||
-                           (fSCeta>=0.8 && fSCeta<1.479 && BDT > -0.286) ||
-                           (fSCeta>=1.479               && BDT > -0.267)));
-  return isBDT;
+bool HZZFourLElectronSelector::leptonCrosscleaned(const pat::Electron& ele,const edm::Handle<pat::MuonCollection>& muVec) {
+  bool flag = true;
+  std::cout << "Entering Cross clean" << std::endl;
+  for (const auto& mu: *muVec) {
+    if (HZZ4lUtil::getP4(ele).DeltaR(HZZ4lUtil::getP4(mu)) < 0.05) {
+      flag = false;
+      break;
+    }
+  }
+  return flag;
 }
-*/
+
 // ------------ method called once each stream before processing any runs, lumis or events  ------------
 /*void
 HZZFourLElectronSelector::beginStream(edm::StreamID)

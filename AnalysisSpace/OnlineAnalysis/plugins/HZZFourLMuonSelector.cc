@@ -124,7 +124,7 @@ HZZFourLMuonSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	      const reco::Vertex& vit = primaryVertices->front(); // Highest sumPt vertex
 	      dxyWrtPV = tk->dxy(vit.position());
 	      dzWrtPV  = tk->dz(vit.position());
-              highPtid = isTrackerHighPt(mu,vit) && mu.pt() > 20;
+              highPtid = isTrackerHighPt(mu,vit) && mu.pt() > 200;
 	    }
 	    if(dxyWrtPV >= 0.5 )      continue;
             if(dzWrtPV >= 1.)         continue;
@@ -151,12 +151,17 @@ HZZFourLMuonSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 bool HZZFourLMuonSelector::isTrackerHighPt(const pat::Muon & mu, const reco::Vertex & primaryVertex) {
-        return ( mu.numberOfMatchedStations() > 1 
-                         && (mu.muonBestTrack()->ptError()/mu.muonBestTrack()->pt()) < 0.3 
-                         && std::abs(mu.muonBestTrack()->dxy(primaryVertex.position())) < 0.2 
-                         && std::abs(mu.muonBestTrack()->dz(primaryVertex.position())) < 0.5 
-                         && mu.innerTrack()->hitPattern().numberOfValidPixelHits() > 0 
-                         && mu.innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 );
+  //reco::TrackRef
+  const auto& bestrkRef = mu.muonBestTrack();
+  const auto& intrkRef = mu.innerTrack();
+  if(!bestrkRef.isNonnull() || !intrkRef.isNonnull() )      return false;		
+  return ( mu.numberOfMatchedStations() > 1 
+                         && (bestrkRef->ptError()/bestrkRef->pt()) < 0.3 
+                         && std::abs(bestrkRef->dxy(primaryVertex.position())) < 0.2 
+                         && std::abs(bestrkRef->dz(primaryVertex.position())) < 0.5 
+                         && intrkRef->hitPattern().numberOfValidPixelHits() > 0 
+                         && intrkRef->hitPattern().trackerLayersWithMeasurement() > 5 );
+
 }
 
 
