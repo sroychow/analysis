@@ -50,6 +50,9 @@ namespace {
     edm::Wrapper<std::vector<vhtm::ZZcandidate>> wvzzcand;
    
     vhtm::SelectedEvent  vselev;
+     
+    vhtm::ZtnP           ztnp;
+    std::vector<vhtm::ZtnP>    vztmp;
     //edm::Wrapper<vhtm::SelectedEvent>    wvselev; 
   };
 }

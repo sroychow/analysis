@@ -24,6 +24,7 @@ ElectronBlock::ElectronBlock(const edm::ParameterSet& iConfig):
   verbosity_(iConfig.getUntrackedParameter<int>("verbosity", 0)),
   bsCorr_(iConfig.getUntrackedParameter<bool>("beamSpotCorr", false)),
   trigMode_(iConfig.getUntrackedParameter<bool>("useTrigMode", false)),
+  calibMode_(iConfig.getUntrackedParameter<bool>("useCalibrationMode", false)),
   bsTag_(iConfig.getUntrackedParameter<edm::InputTag>("offlineBeamSpot", edm::InputTag("offlineBeamSpot"))),
   vertexTag_(iConfig.getUntrackedParameter<edm::InputTag>("vertexSrc", edm::InputTag("goodOfflinePrimaryVertices"))),
   electronTag_(iConfig.getUntrackedParameter<edm::InputTag>("electronSrc", edm::InputTag("selectedPatElectrons"))),
@@ -32,10 +33,10 @@ ElectronBlock::ElectronBlock(const edm::ParameterSet& iConfig):
   vertexToken_(consumes<reco::VertexCollection>(vertexTag_)),
   electronToken_(consumes<pat::ElectronCollection>(electronTag_)),
   pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_)),
-  eleMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap"))),
-  eleTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleTightIdMap"))),
-  mvaValuesMapToken_(consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("mvaValuesMap"))),
-  mvaCategoriesMapToken_(consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("mvaCategoriesMap"))),
+  //eleMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap"))),
+  //eleTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleTightIdMap"))),
+  //mvaValuesMapToken_(consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("mvaValuesMap"))),
+  //mvaCategoriesMapToken_(consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("mvaCategoriesMap"))),
   gsfelectronTokenMVAId_(consumes<edm::View<reco::GsfElectron> >(electronTag_))
 {
 }
@@ -66,16 +67,16 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   edm::Handle<pat::PackedCandidateCollection> pfs;
   iEvent.getByToken(pfToken_, pfs);
 
-  edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
-  edm::Handle<edm::ValueMap<bool> > tight_id_decisions; 
-  iEvent.getByToken(eleMediumIdMapToken_,medium_id_decisions);
-  iEvent.getByToken(eleTightIdMapToken_,tight_id_decisions);
+  //edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+  //edm::Handle<edm::ValueMap<bool> > tight_id_decisions; 
+  //iEvent.getByToken(eleMediumIdMapToken_,medium_id_decisions);
+  //iEvent.getByToken(eleTightIdMapToken_,tight_id_decisions);
 
   // Get MVA values and categories (optional)
-  edm::Handle<edm::ValueMap<float> > mvaValues;
-  edm::Handle<edm::ValueMap<int> > mvaCategories;
-  iEvent.getByToken(mvaValuesMapToken_,mvaValues);
-  iEvent.getByToken(mvaCategoriesMapToken_,mvaCategories);
+  //edm::Handle<edm::ValueMap<float> > mvaValues;
+  //edm::Handle<edm::ValueMap<int> > mvaCategories;
+  //iEvent.getByToken(mvaValuesMapToken_,mvaValues);
+  //iEvent.getByToken(mvaCategoriesMapToken_,mvaCategories);
 
   if (found && electrons.isValid()) {
     edm::Handle<reco::BeamSpot> beamSpot;
@@ -87,7 +88,7 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     edm::LogInfo("ElectronBlock") << "Total # PAT Electrons: " << electrons->size();
     
     //auto gsfit = gsfelectrons->begin();
-    unsigned int gsfeleidx = 0;
+    //unsigned int gsfeleidx = 0;
     for (const pat::Electron& v: *electrons) {
       if (list_->size() == kMaxElectron_) {
         edm::LogInfo("ElectronBlock") << "Too many PAT Electrons, fnElectron = "
@@ -105,20 +106,44 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       electron.energy          = v.energy();
       electron.caloEnergy      = v.ecalEnergy();
       electron.charge          = v.charge();
+
+      electron.isGap = v.isGap();
+
+      if(calibMode_) {
+        double perr = 0.0;
+        if (v.ecalDriven()) {
+          perr = v.p4Error(reco::GsfElectron::P4_COMBINATION);
+        }
+        else {
+          double ecalEnergy = v.correctedEcalEnergy();
+          double err2 = 0.0;
+          if (v.isEB()) {
+            err2 += (5.24e-02*5.24e-02)/ecalEnergy;
+            err2 += (2.01e-01*2.01e-01)/(ecalEnergy*ecalEnergy);
+            err2 += 1.00e-02*1.00e-02;
+          } else if (v.isEE()) {
+            err2 += (1.46e-01*1.46e-01)/ecalEnergy;
+            err2 += (9.21e-01*9.21e-01)/(ecalEnergy*ecalEnergy);
+            err2 += 1.94e-03*1.94e-03;
+          }
+            perr = ecalEnergy * std::sqrt(err2);
+        }
+        electron.pterr = perr*v.pt()/v.p();
+        electron.perr = perr;
+      }
   
       float nMissingHits = 0;
       double dxyWrtPV = -99.;
       double dzWrtPV = -99.;
       
       //storing of ele id decisions
-      const auto gsfel = gsfelectrons->ptrAt(gsfeleidx);
-      electron.passMediumId = (*medium_id_decisions)[gsfel];
-      electron.passTightId = (*tight_id_decisions)[gsfel];
-      electron.BDT = (*mvaValues)[gsfel]; 
-      electron.mvaCategory = (*mvaCategories)[gsfel];
-      gsfeleidx++;
-
-      electron.BDTpreComp = v.userFloat("ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values"); 
+      //const auto gsfel = gsfelectrons->ptrAt(gsfeleidx);
+      //electron.passMediumId = (*medium_id_decisions)[gsfel];
+      //electron.passTightId = (*tight_id_decisions)[gsfel];
+      //electron.BDT = (*mvaValues)[gsfel]; 
+      //electron.mvaCategory = (*mvaCategories)[gsfel];
+      //gsfeleidx++;
+      electron.BDTpreComp = v.userFloat("ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values");
 
       if (hasGsfTrack) {
         reco::GsfTrackRef tk = v.gsfTrack();
@@ -313,7 +338,6 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 //         electron.isolationMap[cone] = isotemp;
 //        }
 
-      electron.ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values = v.userFloat("ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values");
       calcIsoFromPF(0.15, pfs, v, isotemp);
       electron.isolationMap["c15"] = isotemp;
 

@@ -6,13 +6,13 @@
     <version ClassVersion="1" checksum="3575426018" />
   </class>
   <class name="vhtm::Electron" ClassVersion="1">
-    <version ClassVersion="1" checksum="175171125" />
+    <version ClassVersion="1" checksum="715036503" />
   </class>
   <class name="vhtm::Tau" ClassVersion="1">
     <version ClassVersion="1" checksum="949725510" />
   </class>
   <class name="vhtm::Muon" ClassVersion="1">
-    <version ClassVersion="1" checksum="1703241244" />
+    <version ClassVersion="1" checksum="3358643750" />
   </class>
   <class name="vhtm::Jet" ClassVersion="1">
     <version ClassVersion="1" checksum="2335399533"/>

@@ -10,6 +10,8 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/Utils/interface/StringCutObjectSelector.h"
+// Kalman Muon Corrections 
+#include "KaMuCa/Calibration/interface/KalmanMuonCalibrator.h"
 
 namespace vhtm {
   class Muon;
@@ -35,6 +37,8 @@ class MuonBlock : public edm::EDAnalyzer
   int fnMuon_;
 
   const int verbosity_;
+  bool isMC_;
+  bool isSync_;
 
   const edm::InputTag muonTag_;
   const edm::InputTag vertexTag_;
@@ -48,6 +52,9 @@ class MuonBlock : public edm::EDAnalyzer
   const edm::EDGetTokenT<reco::VertexCollection> vertexToken_;
   const edm::EDGetTokenT<reco::BeamSpot> bsToken_;
   const edm::EDGetTokenT<pat::PackedCandidateCollection> pfToken_;
+
+  // Kalman Muon Calibrator 
+  KalmanMuonCalibrator *kalmanMuonCalibrator;
 
 
   /// Use default criteria to choose the best muon

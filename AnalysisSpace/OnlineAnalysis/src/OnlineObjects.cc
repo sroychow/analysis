@@ -7,6 +7,7 @@ ClassImp(vhtm::Zmumu)
 ClassImp(vhtm::Zee)
 ClassImp(vhtm::ZZcandidate)
 ClassImp(vhtm::SelectedEvent)
+ClassImp(vhtm::ZtnP)
 vhtm::IsoElectron::IsoElectron() :
     hasfsr(false),
     relIso(999.)
@@ -175,6 +176,11 @@ void vhtm::SelectedEvent::reset()
       kd["D_g4"] = -1.; 
       kd["Djet_VAJHU"] = -1.;
       flavour = 4;
+}
+
+vhtm::ZtnP::ZtnP() 
+{
+
 }
   
 

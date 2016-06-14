@@ -134,7 +134,9 @@ vhtm::Electron::Electron():
   passMediumId(false),
   passTightId(false),
   mvaCategory(false),
-  ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values(-999.)
+  pterr(999.),
+  perr(999.),
+  isGap(0)
 {
   idmap.clear();
 }
@@ -250,7 +252,8 @@ vhtm::Muon::Muon():
   isghostCleaned(false),
   eta(-999),
   phi(-999),
-  pt(-999),
+  pt(-999.),
+  pterr(-999.),
   p(-999),
   energy(-999),
   charge(-999),
@@ -303,7 +306,11 @@ vhtm::Muon::Muon():
   stationGapMaskPull(0),
   muonID(false),
   nSegments(-1),
-  selbit(0)
+  selbit(0),
+  newKpt(-1),
+  newKpterr(-1),
+  smearedKpt(-1),
+  smearedKpterr(-1)
 {}
 
 vhtm::Jet::Jet():

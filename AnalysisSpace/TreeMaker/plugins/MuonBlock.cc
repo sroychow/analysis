@@ -30,6 +30,8 @@ using std::setw;
 
 MuonBlock::MuonBlock(const edm::ParameterSet& iConfig):
   verbosity_(iConfig.getUntrackedParameter<int>("verbosity", 0)),
+  isMC_(iConfig.getUntrackedParameter<bool>("isMC", 1)),
+  isSync_(iConfig.getUntrackedParameter<bool>("isSync", 0)),
   muonTag_(iConfig.getUntrackedParameter<edm::InputTag>("muonSrc", edm::InputTag("selectedPatMuons"))),
   vertexTag_(iConfig.getUntrackedParameter<edm::InputTag>("vertexSrc", edm::InputTag("goodOfflinePrimaryVertices"))),
   bsTag_(iConfig.getUntrackedParameter<edm::InputTag>("offlineBeamSpot", edm::InputTag("offlineBeamSpot"))),
@@ -43,6 +45,9 @@ MuonBlock::MuonBlock(const edm::ParameterSet& iConfig):
   defaultBestMuon_(!iConfig.existsAs<std::string>("customArbitration")),
   bestMuonSelector_(defaultBestMuon_ ? std::string("") : iConfig.getParameter<std::string>("customArbitration"))
 {
+  //if (isMC_)   kalmanMuonCalibrator = new KalmanMuonCalibrator("MC_76X_13TeV");
+  //else kalmanMuonCalibrator = new KalmanMuonCalibrator("DATA_76X_13TeV");
+  
 }
 MuonBlock::~MuonBlock() {
 }
@@ -126,11 +131,11 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       muon.energy  = v.energy();
       muon.charge  = v.charge();
       
-      
       reco::TrackRef tk = v.muonBestTrack();
       bool hasTkinRef = tk.isNonnull();
        
       if( hasTkinRef ) {
+        muon.pterr = tk->ptError();
         //tk  = v.innerTrack(); // tracker segment only
         muon.tkNChi2 = tk->normalizedChi2(); 
         double trkd0 = tk->d0();
@@ -151,9 +156,22 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         muon.trkDz      = trkdz;
       }  
       
-
+      //Kamuca corrections
+      /*
+       if (!isMC_) {
+           if (muon.pt >2.0 && std::abs(muon.eta )<2.4) {
+               muon.newKpt = kalmanMuonCalibrator->getCorrectedPt(muon.pt,muon.eta,muon.phi,muon.charge);
+               muon.newKpterr = muon.newKpt*kalmanMuonCalibrator->getCorrectedError(muon.newKpt,muon.eta,muon.pterr/muon.newKpt);
+           }
+       } else {
+           muon.newKpt = kalmanMuonCalibrator->getCorrectedPt(muon.pt, muon.eta, muon.phi, muon.charge);
+           muon.newKpterr = muon.newKpt * kalmanMuonCalibrator->getCorrectedError(muon.newKpt, muon.eta, muon.pterr/muon.newKpt );
+           if (!isSync_) muon.smearedKpt = kalmanMuonCalibrator->smear(muon.newKpt, muon.eta);
+           else muon.smearedKpt = kalmanMuonCalibrator->smearForSync(muon.newKpt, muon.eta);
+           muon.smearedKpterr = muon.smearedKpt * kalmanMuonCalibrator->getCorrectedErrorAfterSmearing(muon.smearedKpt, muon.eta, muon.newKpterr /muon.smearedKpt );
+       }
+      */
       muon.globalChi2 = v.isGlobalMuon() ? v.normChi2() : 9999.;
-     
       muon.passID     = v.muonID(muonID_) ? true : false;
 
 

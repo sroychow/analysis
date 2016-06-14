@@ -178,7 +178,11 @@ namespace vhtm {
     bool passMediumId;
     bool passTightId;
     int mvaCategory;
-    float ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values;
+    double pterr;
+    double perr;
+    bool isGap;
+   
+
     std::map< std::string,std::vector<double> > isolationMap;
 
     ClassDef(Electron, 1)
@@ -330,6 +334,7 @@ namespace vhtm {
     double eta;
     double phi;
     double pt;
+    double pterr;
 
     double p;
     double energy;
@@ -398,6 +403,12 @@ namespace vhtm {
     int nSegments;
 
     int selbit;
+    //Muon KalmanMuonCorrector corrections
+    double newKpt;
+    double newKpterr;
+    double smearedKpt;
+    double smearedKpterr;
+     
     std::map< std::string,std::vector<double> > isolationMap;
     ClassDef(Muon, 1)
 //    ClassDef(Muon, 2)

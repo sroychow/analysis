@@ -17,6 +17,9 @@
   <class name="vhtm::SelectedEvent" ClassVersion="1">
     <version ClassVersion="1" checksum="3126085324" />
   </class>
+  <class name="vhtm::ZtnP" ClassVersion="1" persistent="true">
+    <version ClassVersion="1" checksum="1031741091" />
+  </class>
   <class name="std::pair<pat::Electron,std::vector<pat::PackedCandidate>>" />
   <class name="std::vector<std::pair<pat::Electron,std::vector<pat::PackedCandidate>>>" />
   <class name="edm::Wrapper<std::vector<std::pair<pat::Electron,std::vector<pat::PackedCandidate>>>>" />
@@ -39,6 +42,7 @@
   <class name="std::vector<vhtm::ZZcandidate>" persistent="true" />
   <class name="edm::Wrapper<std::vector<vhtm::ZZcandidate>>" persistent="true" />
   <class name="vhtm::SelectedEvent" persistent="true" />
+  <class name="std::vector<vhtm::ZtnP>" persistent="true" />
   <class name="std::map<double, std::vector<double> >" persistent="true" />
   <class name="std::map<std::string, std::vector<double> >" persistent="true" />
   <class name="std::map<std::string, double >" persistent="true" />

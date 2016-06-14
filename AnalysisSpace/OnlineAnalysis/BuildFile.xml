@@ -30,6 +30,7 @@
 <use name="AnalysisSpace/TreeMaker" />
 <use name="ZZMatrixElement/MEMCalculators" />
 <use name="KinZfitter/KinZfitter" />
+<use name="KaMuCa/Calibration" />
 <export>
   <lib name="1"/>
 </export>

@@ -33,3 +33,15 @@ treeContentSequence = cms.Sequence(
  + jetBlock
  + packedPFCandidateBlock
 )
+
+treeContentSequenceZTnPMC = cms.Sequence(
+   eventBlock
+ + triggerBlock
+ + triggerObjectBlock
+ + vertexBlock
+ + genParticleBlock
+ + electronBlock
+ + photonBlock
+ + muonBlock
+ + packedPFCandidateBlock
+)
