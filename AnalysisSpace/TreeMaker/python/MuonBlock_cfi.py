@@ -8,5 +8,7 @@ muonBlock = cms.EDAnalyzer("MuonBlock",
   vertexSrc = cms.untracked.InputTag('selectedPrimaryVertices'),
   offlineBeamSpot = cms.untracked.InputTag('offlineBeamSpot'),
   beamSpotCorr = cms.untracked.bool(True),
-  muonID = cms.untracked.string('GlobalMuonPromptTight')
+  muonID = cms.untracked.string('GlobalMuonPromptTight'),
+  isMC = cms.untracked.bool(True),
+  isSync = cms.untracked.bool(False),
 )

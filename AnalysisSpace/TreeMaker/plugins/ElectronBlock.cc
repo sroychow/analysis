@@ -33,10 +33,6 @@ ElectronBlock::ElectronBlock(const edm::ParameterSet& iConfig):
   vertexToken_(consumes<reco::VertexCollection>(vertexTag_)),
   electronToken_(consumes<pat::ElectronCollection>(electronTag_)),
   pfToken_(consumes<pat::PackedCandidateCollection>(pfcandTag_)),
-  //eleMediumIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap"))),
-  //eleTightIdMapToken_(consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleTightIdMap"))),
-  //mvaValuesMapToken_(consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("mvaValuesMap"))),
-  //mvaCategoriesMapToken_(consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("mvaCategoriesMap"))),
   gsfelectronTokenMVAId_(consumes<edm::View<reco::GsfElectron> >(electronTag_))
 {
 }
@@ -48,8 +44,15 @@ void ElectronBlock::beginJob()
   std::string tree_name = "vhtree";
   TTree* tree = vhtm::Utility::getTree(tree_name);
   list_ = new std::vector<vhtm::Electron>();
-  tree->Branch("Electron", "std::vector<vhtm::Electron>", &list_, 32000, -1);
-  tree->Branch("nElectron", &fnElectron_, "fnElectron_/I");
+  TString bname1 = "Electron";
+  TString bname2 = "nElectron";
+  if(calibMode_)  {
+    bname1 += "Calibrated";
+    bname2 += "Calibrated";
+  }
+
+  tree->Branch(bname1, "std::vector<vhtm::Electron>", &list_, 32000, -1);
+  tree->Branch(bname2, &fnElectron_, "fnElectron_/I");
 }
 void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Reset the vector and the nObj variables

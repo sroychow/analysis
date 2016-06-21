@@ -5,7 +5,7 @@ from AnalysisSpace.TreeMaker.EventBlock_cfi import eventBlock
 from AnalysisSpace.TreeMaker.VertexBlock_cfi import vertexBlock
 #from AnalysisSpace.TreeMaker.GenJetBlock_cfi import genJetBlock
 from AnalysisSpace.TreeMaker.JetBlock_cfi import jetBlock
-from AnalysisSpace.TreeMaker.ElectronBlock_bx25_cfi import electronBlock
+from AnalysisSpace.TreeMaker.ElectronBlock_bx25_cfi import *
 from AnalysisSpace.TreeMaker.PhotonBlock_cfi import photonBlock
 from AnalysisSpace.TreeMaker.METBlock_cfi import metBlock
 #from AnalysisSpace.TreeMaker.GenMETBlock_cfi import genMETBlock
@@ -41,6 +41,20 @@ treeContentSequenceZTnPMC = cms.Sequence(
  + vertexBlock
  + genParticleBlock
  + electronBlock
+ + photonBlock
+ + muonBlock
+ + packedPFCandidateBlock
+)
+
+treeContentSequenceLepCalibZMC = cms.Sequence(
+   eventBlock
+ + triggerBlock
+ + triggerObjectBlock
+ + vertexBlock
+# + genEventBlock
+ + genParticleBlock
+ + electronBlock
+ + calibelectronBlock
  + photonBlock
  + muonBlock
  + packedPFCandidateBlock

@@ -81,7 +81,7 @@ vhtm::Electron::Electron():
   hasGsfTrack(false),
   trackPt(-999),
   energy(-999),
-  caloEnergy(-999),
+  caloEnergy(-999.),
   charge(-999),
   pixHits(-1),
   trkHits(-1),

@@ -45,8 +45,8 @@ MuonBlock::MuonBlock(const edm::ParameterSet& iConfig):
   defaultBestMuon_(!iConfig.existsAs<std::string>("customArbitration")),
   bestMuonSelector_(defaultBestMuon_ ? std::string("") : iConfig.getParameter<std::string>("customArbitration"))
 {
-  //if (isMC_)   kalmanMuonCalibrator = new KalmanMuonCalibrator("MC_76X_13TeV");
-  //else kalmanMuonCalibrator = new KalmanMuonCalibrator("DATA_76X_13TeV");
+  if (isMC_)   kalmanMuonCalibrator = new KalmanMuonCalibrator("MC_76X_13TeV");
+  else kalmanMuonCalibrator = new KalmanMuonCalibrator("DATA_76X_13TeV");
   
 }
 MuonBlock::~MuonBlock() {
@@ -157,20 +157,20 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       }  
       
       //Kamuca corrections
-      /*
-       if (!isMC_) {
+      
+      if (!isMC_) {
            if (muon.pt >2.0 && std::abs(muon.eta )<2.4) {
                muon.newKpt = kalmanMuonCalibrator->getCorrectedPt(muon.pt,muon.eta,muon.phi,muon.charge);
                muon.newKpterr = muon.newKpt*kalmanMuonCalibrator->getCorrectedError(muon.newKpt,muon.eta,muon.pterr/muon.newKpt);
            }
-       } else {
+      } else {
            muon.newKpt = kalmanMuonCalibrator->getCorrectedPt(muon.pt, muon.eta, muon.phi, muon.charge);
            muon.newKpterr = muon.newKpt * kalmanMuonCalibrator->getCorrectedError(muon.newKpt, muon.eta, muon.pterr/muon.newKpt );
            if (!isSync_) muon.smearedKpt = kalmanMuonCalibrator->smear(muon.newKpt, muon.eta);
            else muon.smearedKpt = kalmanMuonCalibrator->smearForSync(muon.newKpt, muon.eta);
            muon.smearedKpterr = muon.smearedKpt * kalmanMuonCalibrator->getCorrectedErrorAfterSmearing(muon.smearedKpt, muon.eta, muon.newKpterr /muon.smearedKpt );
-       }
-      */
+      }
+      
       muon.globalChi2 = v.isGlobalMuon() ? v.normChi2() : 9999.;
       muon.passID     = v.muonID(muonID_) ? true : false;
 
