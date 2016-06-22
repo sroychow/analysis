@@ -104,7 +104,6 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
    
 
-//    for (const pat::Muon& v: *muons) {
     for ( unsigned int i = 0; i < nMu; ++i ) {
       if (list_->size() == kMaxMuon_) {
 	edm::LogInfo("MuonBlock") << "Too many PAT Muons, fnMuon = " << list_->size();
@@ -125,7 +124,6 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       muon.p       = v.p();
       muon.energy  = v.energy();
       muon.charge  = v.charge();
-      
       
       reco::TrackRef tk = v.muonBestTrack();
       bool hasTkinRef = tk.isNonnull();
@@ -163,13 +161,14 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         edm::LogInfo("MuonBlock") << "Total # Primary Vertices: " << primaryVertices->size();
 
         const reco::Vertex& vit = primaryVertices->front(); // Highest sumPt vertex
-
 /*
         if( hasTkinRef ) {
           dxyWrtPV = tk->dxy(vit.position());
           dzWrtPV  = tk->dz(vit.position());
         }
 */
+
+        muon.passTrackerhighPtid = isTrackerHighPt(v,vit);
         dxyWrtPV = tk->dxy(vit.position());
         dzWrtPV  = tk->dz(vit.position());
      
@@ -369,6 +368,21 @@ void MuonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    
 }
 
+bool MuonBlock::isTrackerHighPt(const pat::Muon & mu, const reco::Vertex & primaryVertex) 
+{
+  //reco::TrackRef
+  const auto& bestrkRef = mu.muonBestTrack();
+  const auto& intrkRef = mu.innerTrack();
+  if(!bestrkRef.isNonnull() || !intrkRef.isNonnull() )      return false;		
+  return ( mu.numberOfMatchedStations() > 1 
+           && (bestrkRef->ptError()/bestrkRef->pt()) < 0.3 
+           && std::abs(bestrkRef->dxy(primaryVertex.position())) < 0.2 
+           && std::abs(bestrkRef->dz(primaryVertex.position())) < 0.5 
+           && intrkRef->hitPattern().numberOfValidPixelHits() > 0 
+           && intrkRef->hitPattern().trackerLayersWithMeasurement() > 5 );
+  
+}
+
 void MuonBlock::calcIsoFromPF(double cone, edm::Handle<pat::PackedCandidateCollection>& pfs, const pat::Muon& v, std::vector<double>& iso)
 {
   // initialize sums
@@ -474,5 +488,14 @@ bool MuonBlock::isBetterMuon(const pat::Muon &mu1, const pat::Muon &mu2) const {
   }
 }
 
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+MuonBlock::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
+}
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(MuonBlock);

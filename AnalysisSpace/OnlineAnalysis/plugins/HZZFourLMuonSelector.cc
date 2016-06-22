@@ -85,13 +85,13 @@ HZZFourLMuonSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	edm::Handle<pat::MuonCollection> muons;
 	bool found = iEvent.getByToken(muonToken_, muons);
 
-	if (found && muons.isValid()) {
+
+	if (found ) {
 	  edm::Handle<reco::VertexCollection> primaryVertices;
 	  iEvent.getByToken(vertexToken_, primaryVertices);
 
 
 	  edm::LogInfo("HZZFourLMuonSelector") << "Total # of Muons: " << muons->size();
-	  //std::cout << "Total # of Muons: " << muons->size()<<std::endl;
 	  /*
           Loose Muons: pT > 5, 
                        |eta| < 2.4, 
@@ -106,12 +106,7 @@ HZZFourLMuonSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                        are marked as global or traker muons. 
           Tight Muons: as Loose Muons+ PF Muon 
           */
-	  unsigned int nMu = muons->size();
-	  std::vector<bool> good(nMu, true);
-	  for( unsigned int i = 0; i<nMu; i++ ) {
-	    const pat::Muon& mu = muons->at(i);
-	    //if( !mu.track().isNonnull() )  good[i] = false; 
-	    //if( !good[i] )  continue;
+	  for( const auto& mu : *muons ) {
             if(mu.pt() <= 5.) continue;
             if(std::fabs(mu.eta()) > 2.4) continue;
 	    reco::TrackRef tk = mu.muonBestTrack();
@@ -126,8 +121,8 @@ HZZFourLMuonSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	      dzWrtPV  = tk->dz(vit.position());
               highPtid = isTrackerHighPt(mu,vit) && mu.pt() > 200;
 	    }
-	    if(dxyWrtPV >= 0.5 )      continue;
-            if(dzWrtPV >= 1.)         continue;
+	    if(std::fabs(dxyWrtPV) >= 0.5 )      continue;
+            if(std::fabs(dzWrtPV) >= 1.)         continue;
 	    bool quality = (mu.isGlobalMuon()
                            || ( mu.isTrackerMuon() && mu.numberOfMatches() >= 0)) 
                            && mu.muonBestTrackType()!=2 ;
@@ -140,7 +135,7 @@ HZZFourLMuonSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
             tightlist_->push_back(mu);
 	  }
 	}
-        //std::cout<<"No. of loose muons"<<list_->size()<<std::endl;
+        //std::cout<<"No. of loose muons"<<looselist_->size()<<std::endl;
 	std::auto_ptr<std::vector<pat::Muon>> pv1(new std::vector<pat::Muon>(*looselist_));       
 	iEvent.put(pv1,looseMuOutputColl_);
 	std::auto_ptr<std::vector<pat::Muon>> pv2(new std::vector<pat::Muon>(*looseSIPlist_));       

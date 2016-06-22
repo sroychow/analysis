@@ -18,6 +18,7 @@ GenParticleBlock::GenParticleBlock(const edm::ParameterSet& iConfig) :
 {
 }
 GenParticleBlock::~GenParticleBlock() {
+  delete list_;
 }
 void GenParticleBlock::beginJob() {
   // Get TTree pointer
@@ -140,5 +141,13 @@ void GenParticleBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     }
   }
 }
-#include "FWCore/Framework/interface/MakerMacros.h"
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+GenParticleBlock::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
+}
 DEFINE_FWK_MODULE(GenParticleBlock);

@@ -176,8 +176,11 @@ FSRBlock::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(pv2,looseSIPEleFSRColl_);
   std::auto_ptr<std::vector< std::pair< pat::Muon, std::vector<pat::PackedCandidate> >>> pv3(new std::vector< std::pair< pat::Muon, 
                                                                                                  std::vector<pat::PackedCandidate> >>(*looseMuFSRpairVec_));
+  
   iEvent.put(pv3,looseSIPMuFSRColl_);
-  ////std::cout << "Leaving FSRBlock::produce" << std::endl;
+  //std::cout <<"ELEFSR size=" << pv2->size() << std::endl;
+  //std::cout <<"MUFSR size=" << pv3->size() << std::endl;
+  //std::cout << "Leaving FSRBlock::produce" << std::endl;
 }
 
 void FSRBlock::calcIsoFromPF(const pat::PackedCandidate& v, 

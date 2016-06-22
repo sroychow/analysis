@@ -5,8 +5,9 @@
 #include <vector>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
@@ -14,7 +15,7 @@
 namespace vhtm {
   class Vertex;
 }
-class VertexBlock : public edm::EDAnalyzer
+class VertexBlock : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
 private:
   virtual void beginJob();
@@ -24,8 +25,8 @@ private:
 
 public:
   explicit VertexBlock(const edm::ParameterSet& iConfig);
-  virtual ~VertexBlock() {}
-
+  virtual ~VertexBlock();
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   enum {
     kMaxVertex_ = 150
   };

@@ -16,6 +16,10 @@ VertexBlock::VertexBlock(const edm::ParameterSet& iConfig) :
   vertexTag_(iConfig.getUntrackedParameter<edm::InputTag>("vertexSrc", edm::InputTag("goodOfflinePrimaryVertices"))),
   vertexToken_(consumes<reco::VertexCollection>(vertexTag_))
 {}
+VertexBlock::~VertexBlock()
+{
+  delete list_;
+}
 void VertexBlock::beginJob() {
   // Get TTree pointer
   TTree* tree = vhtm::Utility::getTree("vhtree");
@@ -81,6 +85,15 @@ void VertexBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     edm::LogError("VertexBlock") << "Error! Failed to get VertexCollection for label: "
                                  << vertexTag_;
   }
+}
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+VertexBlock::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
 }
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(VertexBlock);

@@ -248,7 +248,7 @@ void Final4lEventAnalyzer::doZmassrefit(vhtm::ZZcandidate& ZZcand, double& mass4
   selectedFsrMap[2] = ZZcand.fsrP4Vec[2];
   selectedFsrMap[3] = ZZcand.fsrP4Vec[3];
   kinZfitter_->Setup(selectedLeptons, selectedFsrMap);
-  kinZfitter_->KinRefitZ1();
+  kinZfitter_->KinRefitZ();
   // refit mass4l
   mass4lREFIT = kinZfitter_->GetRefitM4l();
   // four 4-vectors after refitting order by Z1_1,Z1_2,Z2_1,Z2_2

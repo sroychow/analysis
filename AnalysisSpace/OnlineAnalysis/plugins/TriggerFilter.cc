@@ -118,21 +118,27 @@ TriggerFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       unsigned int index = hltConfig_.triggerIndex(path);
       if (index < triggerResults->size()) {
         fired = (triggerResults->accept(index)) ? 1 : 0;
+        //if(fired)  std::cout << "Fired path=" << path << std::endl;
       }
       else {
 	edm::LogInfo("TriggerFilter") << "Requested HLT path \"" << path << "\" does not exist";
       }
+
+      //Temporary fix since prescales not correct in miniAOD
+      /*
       int prescale = -1;
       const int prescaleSet = hltPrescaleProvider_.prescaleSet(iEvent, iSetup);
-      //if (hltConfig_.prescaleSet(iEvent, iSetup) < 0) {
       if ( prescaleSet < 0 ) {
-	edm::LogError("TriggerBlock") << "The prescale set index number could not be obtained for HLT path: "
+	edm::LogError("TriggerFilter") << "The prescale set index number could not be obtained for HLT path: "
                                       << path;
       }
       else {
         prescale = hltConfig_.prescaleValue(prescaleSet, path);
       }
-      if(fired == 1 && prescale == 1)    {
+      */
+      //Checking if only fired
+      //if(fired == 1 && prescale == 1)    {
+      if(fired == 1 )    {
         isTriggered = true;
         nTrigpassEvt++;
         break;
@@ -167,6 +173,7 @@ TriggerFilter::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
     matchedPathList_.clear();
     const std::vector<std::string>& pathList = hltConfig_.triggerNames();
     for (const std::string& path: pathList) {
+      std::cout << path << "\t" ;
       if (hltPathsOfInterest_.size()) {
         int nmatch = 0;
         for (const std::string& kt: hltPathsOfInterest_)

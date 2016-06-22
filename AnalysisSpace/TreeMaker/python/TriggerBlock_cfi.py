@@ -16,5 +16,16 @@ triggerBlock = cms.EDAnalyzer("TriggerBlock",
     'HLT_DiMu9_Ele9_CaloIdL_TrackIdL_v*',
     'HLT_Ele23_WPLoose_Gsf_v*' 
   )
-                                     
+)
+
+triggerBlockZTnP = cms.EDAnalyzer("TriggerBlock",
+  verbosity = cms.untracked.int32(0),
+  l1InputTag = cms.untracked.InputTag('gtDigis'),
+  hltInputTag = cms.untracked.InputTag('TriggerResults','','HLT'),
+  hltPathsOfInterest = cms.vstring ( 
+ 	'HLT_IsoMu20_v*',
+  	'HLT_IsoTkMu20_v*',
+        'HLT_IsoMu22_v*',
+        'HLT_IsoTkMu22_v*'
+  )
 )

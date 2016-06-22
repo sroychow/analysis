@@ -88,6 +88,7 @@ void TriggerBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   hltresults_->clear();
   hltprescales_->clear();
 
+  /*
   edm::Handle<L1GlobalTriggerReadoutRecord> l1GtReadoutRecord;
   bool found = iEvent.getByToken(l1Token_, l1GtReadoutRecord);
   if (found && l1GtReadoutRecord.isValid()) {
@@ -103,10 +104,10 @@ void TriggerBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   else 
     edm::LogError("TriggerBlock") << "Error >> Failed to get L1GlobalTriggerReadoutRecord for label: "
                                   << l1Tag_;
-
+  */
   edm::Handle<edm::TriggerResults> triggerResults;
-  found = iEvent.getByToken(hltToken_, triggerResults);
-  if (found && triggerResults.isValid()) {
+  bool hltfound = iEvent.getByToken(hltToken_, triggerResults);
+  if (hltfound && triggerResults.isValid()) {
     edm::LogInfo("TriggerBlock") << "Successfully obtained " << hltTag_;
     for (auto path: matchedPathList_) {
       hltpaths_->push_back(path);
@@ -122,8 +123,9 @@ void TriggerBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       hltresults_->push_back(fired);
 
       int prescale = -1;
+      //TEMPORARY FIX PRESCALES not correct in miniAOD
+      /*  
       const int prescaleSet = hltPrescaleProvider_.prescaleSet(iEvent, iSetup);
-      //if (hltConfig_.prescaleSet(iEvent, iSetup) < 0) {
       if ( prescaleSet < 0 ) {
 	edm::LogError("TriggerBlock") << "The prescale set index number could not be obtained for HLT path: "
                                       << path;
@@ -131,6 +133,7 @@ void TriggerBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
       else {
         prescale = hltConfig_.prescaleValue(prescaleSet, path);
       }
+      */      
       hltprescales_->push_back(prescale);
 
       if (verbosity_) {
@@ -149,11 +152,12 @@ void TriggerBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	  edm::LogInfo("TriggerBlock") << "\tModule Labels: " << v;
         
       }    
-    }      
+    } 
+    /*     
     if (verbosity_) {
       const std::vector<std::string>& b = hltConfig_.prescaleLabels();
       for (auto v: b)
-	edm::LogInfo("TriggerBlock") << "\tPrescale Labels: " << v;
+  	edm::LogInfo("TriggerBlock") << "\tPrescale Labels: " << v;
 
       const std::map<std::string, std::vector<unsigned int> >& c = hltConfig_.prescaleTable();
       for (auto ptr: c) {
@@ -162,11 +166,20 @@ void TriggerBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 	  edm::LogInfo("TriggerBlock") << "value: " << v;
       }
     } 
+    */
   } 
   else {
     edm::LogError("TriggerBlock") << "Failed to get TriggerResults for label: "
                                   << hltTag_;
   }
 }
-#include "FWCore/Framework/interface/MakerMacros.h"
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+TriggerBlock::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
+}
 DEFINE_FWK_MODULE(TriggerBlock);

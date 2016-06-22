@@ -112,15 +112,8 @@ void EventBlock::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   edm::Handle<double> fixedGridRhoFastjetCentralNeutral;
   iEvent.getByToken(fixedGridRhoFastjetCentralNeutralToken_,fixedGridRhoFastjetCentralNeutral);
   ev.fGridRhoFastjetCentralNeutral = *fixedGridRhoFastjetCentralNeutral;
-  //
 
-
-
-
-
-
-
-
+  /*
   // Technical Trigger Part
   if (found && l1GtReadoutRecord.isValid()) {
     edm::LogInfo("EventBlock") << "Successfully obtained L1GlobalTriggerReadoutRecord for label: "
@@ -149,6 +142,7 @@ void EventBlock::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     edm::LogError("EventBlock") << "Failed to get L1GlobalTriggerReadoutRecord for label: "
                                 << l1Tag_;
   }
+  */
 
   // Good Primary Vertex Part
   edm::Handle<reco::VertexCollection> primaryVertices;
@@ -171,6 +165,7 @@ void EventBlock::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     edm::LogError("EventBlock") << "Error! Failed to get VertexCollection for label: "
                                 << vertexTag_;
   }
+
 #if 0
   // Scraping Events Part
   edm::Handle<reco::TrackCollection> tracks;
@@ -232,6 +227,16 @@ void EventBlock::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   if (found) ev.nvtx = spVertices->size();
 
   list_->push_back(ev);
+}
+
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+EventBlock::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
 }
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(EventBlock);

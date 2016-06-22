@@ -176,5 +176,9 @@ void vhtm::SelectedEvent::reset()
       kd["Djet_VAJHU"] = -1.;
       flavour = 4;
 }
-  
+
+vhtm::ZtnP::ZtnP() 
+{
+
+}
 

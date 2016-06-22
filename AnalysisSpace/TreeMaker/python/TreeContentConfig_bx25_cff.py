@@ -12,7 +12,7 @@ from AnalysisSpace.TreeMaker.METBlock_cfi import metBlock
 from AnalysisSpace.TreeMaker.MuonBlock_cfi import muonBlock
 from AnalysisSpace.TreeMaker.TauBlock_cfi import tauBlock
 from AnalysisSpace.TreeMaker.GenParticleBlock_cfi import genParticleBlock
-from AnalysisSpace.TreeMaker.TriggerBlock_cfi import triggerBlock
+from AnalysisSpace.TreeMaker.TriggerBlock_cfi import *
 from AnalysisSpace.TreeMaker.TriggerObjectBlock_cfi import triggerObjectBlock
 from AnalysisSpace.TreeMaker.PackedPFCandidateBlock_cfi import packedPFCandidateBlock
 
@@ -33,3 +33,16 @@ treeContentSequence = cms.Sequence(
  + jetBlock
  + packedPFCandidateBlock
 )
+
+treeContentSequenceZTnPMC = cms.Sequence(
+    eventBlock
+  + triggerBlockZTnP
+  + triggerObjectBlock
+  + vertexBlock
+  + genParticleBlock
+  + electronBlock
+  + photonBlock
+  + muonBlock
+  + packedPFCandidateBlock
+)
+

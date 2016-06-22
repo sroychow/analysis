@@ -5,8 +5,9 @@
 #include <vector>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "DataFormats/Common/interface/Ref.h"
@@ -24,7 +25,7 @@
 namespace vhtm {
   class Electron;
 }
-class ElectronBlock : public edm::EDAnalyzer
+class ElectronBlock : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
 private:
   virtual void beginJob();
@@ -36,6 +37,7 @@ private:
 public:
   explicit ElectronBlock(const edm::ParameterSet& iConfig);
   virtual ~ElectronBlock();
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
   enum {
     kMaxElectron_ = 100

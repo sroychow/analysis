@@ -25,6 +25,7 @@ TriggerObjectBlock::TriggerObjectBlock(const edm::ParameterSet& iConfig) :
 {
 }
 TriggerObjectBlock::~TriggerObjectBlock() {
+  delete list_;
 }
 void TriggerObjectBlock::beginJob()
 {
@@ -154,6 +155,14 @@ void TriggerObjectBlock::printObjectInfo(const pat::TriggerObjectStandAlone& obj
     if (isNone && !isBoth && !isL3 && !isLF) edm::LogInfo("TriggerObjectBlock") << "(*,*)";
   }
 }
-
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+TriggerObjectBlock::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
+}
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(TriggerObjectBlock);

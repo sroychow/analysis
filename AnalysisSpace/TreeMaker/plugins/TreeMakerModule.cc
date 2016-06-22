@@ -33,5 +33,14 @@ void TreeMakerModule::analyze(const edm::Event& iEvent, const edm::EventSetup& i
 }
 void TreeMakerModule::endJob() {
 }
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+TreeMakerModule::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
+}
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(TreeMakerModule);

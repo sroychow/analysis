@@ -4,7 +4,7 @@
 #include "TTree.h"
 #include "TROOT.h"
 #include "TVector3.h"
-
+#include "TLorentzVector.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
@@ -41,6 +41,7 @@ ElectronBlock::ElectronBlock(const edm::ParameterSet& iConfig):
 
 }
 ElectronBlock::~ElectronBlock() {
+  delete list_;
 }
 void ElectronBlock::beginJob()
 {
@@ -111,6 +112,7 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       double dxyWrtPV = -99.;
       double dzWrtPV = -99.;
       
+      electron.isGap = v.isGap();
       //storing of ele id decisions
       //const auto gsfel = gsfelectrons->ptrAt(gsfeleidx);
       //electron.passMediumId = (*medium_id_decisions)[gsfelgsfel];
@@ -340,6 +342,13 @@ void ElectronBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       isotemp.clear();
       calcIsoFromPF(0.45, pfs, v, isotemp);
       electron.isolationMap["c45"] = isotemp;
+      //associatedPackedPFCandidatesP4 part
+      const auto& pfref = v.associatedPackedPFCandidates();
+      for(edm::RefVector<pat::PackedCandidateCollection>::const_iterator it = pfref.begin();  it!=pfref.end(); it++) {
+        TLorentzVector p4ref;
+        p4ref.SetPtEtaPhiE((*it)->pt(),(*it)->eta(),(*it)->phi(),(*it)->energy());
+        electron.associatedPackedPFCandidatesP4.push_back(p4ref);
+      }
 
       list_->push_back(electron);
     }
@@ -392,5 +401,14 @@ double chargedhad = 0., chargedSum = 0., neutral = 0., photon = 0., pileup  = 0;
   iso.push_back(photon);
   iso.push_back(pileup);
 }
-#include "FWCore/Framework/interface/MakerMacros.h"
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+ElectronBlock::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
+}
+
 DEFINE_FWK_MODULE(ElectronBlock);

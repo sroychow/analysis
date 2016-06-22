@@ -5,8 +5,9 @@
 #include <vector>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
@@ -16,7 +17,7 @@
 namespace vhtm {
   class Event;
 }
-class EventBlock : public edm::EDAnalyzer
+class EventBlock : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
 private:
   virtual void beginJob();
@@ -27,7 +28,7 @@ private:
 public:
   explicit EventBlock(const edm::ParameterSet& iConfig);
   virtual ~EventBlock();
-
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 private:
   std::vector<vhtm::Event>* list_;
   std::vector<int>* nPU_;

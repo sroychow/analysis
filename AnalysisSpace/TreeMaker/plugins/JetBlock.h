@@ -5,7 +5,8 @@
 #include <vector>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -20,18 +21,18 @@
 namespace vhtm {
   class Jet;
 }
-class JetBlock : public edm::EDAnalyzer
+class JetBlock : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
 private:
   virtual void beginJob();
   virtual void beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {}
   virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup);
   virtual void endJob() {}
-
+  
 public:
   explicit JetBlock(const edm::ParameterSet& iConfig);
-  virtual ~JetBlock() {}
-
+  virtual ~JetBlock();
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);    
   enum {
     kMaxJet_ = 100
   };

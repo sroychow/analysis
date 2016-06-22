@@ -5,7 +5,8 @@
 #include <vector>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -15,7 +16,7 @@
 namespace vhtm {
   class GenParticle;
 }
-class GenParticleBlock : public edm::EDAnalyzer
+class GenParticleBlock : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
 private:
   virtual void beginJob();
@@ -26,7 +27,7 @@ private:
 public:
   explicit GenParticleBlock(const edm::ParameterSet& iConfig);
   virtual ~GenParticleBlock();
-
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   enum {
     kMaxGenParticle_ = 2500
   };

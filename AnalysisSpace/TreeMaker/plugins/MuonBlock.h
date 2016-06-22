@@ -5,7 +5,8 @@
 #include <vector>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -14,7 +15,7 @@
 namespace vhtm {
   class Muon;
 }
-class MuonBlock : public edm::EDAnalyzer
+class MuonBlock : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
  private:
   virtual void beginJob();
@@ -22,10 +23,12 @@ class MuonBlock : public edm::EDAnalyzer
   virtual void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup);
   virtual void endJob(){}
   void calcIsoFromPF(double cone, edm::Handle<pat::PackedCandidateCollection>& pfs, const pat::Muon& v, std::vector<double>& iso);     
+  bool isTrackerHighPt(const pat::Muon & mu, const reco::Vertex & primaryVertex);
+
  public:
   explicit MuonBlock(const edm::ParameterSet& iConfig);
   virtual ~MuonBlock();
-
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   enum {
     kMaxMuon_ = 100
   };

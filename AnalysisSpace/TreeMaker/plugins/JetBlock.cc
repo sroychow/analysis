@@ -21,6 +21,10 @@ JetBlock::JetBlock(const edm::ParameterSet& iConfig) :
   jetTag_(iConfig.getUntrackedParameter<edm::InputTag>("jetSrc",  edm::InputTag("selectedPatJets"))),
   jetToken_(consumes<pat::JetCollection>(jetTag_))
 {}
+JetBlock::~JetBlock() 
+{
+  delete list_;
+}
 void JetBlock::beginJob()
 {
   std::string tree_name = "vhtree";
@@ -108,6 +112,16 @@ void JetBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
     edm::LogError("JetBlock") << "Error >> Failed to get pat::Jet collection for label: "
                               << jetTag_;
   }
+}
+
+// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
+void
+JetBlock::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  //The following says we do not know what parameters are allowed so do no validation
+  // Please change this to state exactly what you do use, even if it is no parameters
+  edm::ParameterSetDescription desc;
+  desc.setUnknown();
+  descriptions.addDefault(desc);
 }
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(JetBlock);

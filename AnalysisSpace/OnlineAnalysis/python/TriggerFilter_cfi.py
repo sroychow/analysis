@@ -17,3 +17,15 @@ triggerFilter = cms.EDFilter("TriggerFilter",
     'HLT_Ele23_WPLoose_Gsf_v*' 
   )
 )
+
+triggerFilterZTnP = cms.EDFilter("TriggerFilter",
+  verbosity = cms.untracked.int32(0),
+  l1InputTag = cms.untracked.InputTag('gtDigis'),
+  hltInputTag = cms.untracked.InputTag('TriggerResults','','HLT'),
+  hltPathsOfInterest = cms.vstring ( 
+  'HLT_IsoMu20_v*',
+  'HLT_IsoTkMu20_v*',
+  'HLT_IsoMu22_v*',
+  'HLT_IsoTkMu22_v*',
+  )
+)
