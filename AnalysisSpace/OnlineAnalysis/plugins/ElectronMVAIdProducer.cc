@@ -32,11 +32,6 @@ ElectronMVAIdProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   edm::Handle<edm::View<reco::GsfElectron> > gsfelectrons;
   iEvent.getByToken(gsfelectronTokenMVAId_, gsfelectrons);
 
-  //edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
-  //edm::Handle<edm::ValueMap<bool> > tight_id_decisions; 
-  //iEvent.getByToken(eleMediumIdMapToken_,medium_id_decisions);
-  //iEvent.getByToken(eleTightIdMapToken_,tight_id_decisions);
-
   // Get MVA values and categories (optional)
   edm::Handle<edm::ValueMap<float> > mvaValues;
   iEvent.getByToken(mvaValuesMapToken_,mvaValues);
@@ -57,7 +52,7 @@ ElectronMVAIdProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
       gsfeleidx++;
       pat::Electron oele = v;
       oele.addUserFloat("electronBDT",(*mvaValues)[gsfel]);
-    outelectrons->push_back(oele); 
+      outelectrons->push_back(oele); 
   }
   // add the muons to the event output
   std::auto_ptr<std::vector<pat::Electron> > ptr(outelectrons);

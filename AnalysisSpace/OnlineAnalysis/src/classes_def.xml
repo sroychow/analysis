@@ -12,13 +12,16 @@
     <version ClassVersion="1" checksum="85779748" />
   </class>
   <class name="vhtm::ZZcandidate" ClassVersion="1">
-    <version ClassVersion="1" checksum="1379257108" />
+    <version ClassVersion="1" checksum="1001896886" />
   </class>
   <class name="vhtm::SelectedEvent" ClassVersion="1" persistent="true">
     <version ClassVersion="1" checksum="3126085324" />
   </class>
   <class name="vhtm::ZtnP" ClassVersion="1" persistent="true">
     <version ClassVersion="1" checksum="1031741091" />
+  </class>
+  <class name="vhtm::Zcandidate" ClassVersion="1" persistent="true">
+    <version ClassVersion="1" checksum="1802709725" />
   </class>
   <class name="pat::UserHolder<TLorentzVector>" />
   <class name="std::vector<std::pair<pat::Electron,std::vector<pat::PackedCandidate>>>" />
@@ -29,6 +32,7 @@
   <class name="edm::Wrapper<std::vector<vhtm::IsoElectron>>" />
   <class name="std::vector<vhtm::IsoMuon>" />
   <class name="edm::Wrapper<std::vector<vhtm::IsoMuon>>" />
+  <class name="std::vector<vhtm::Zcandidate>" />
   <class name="std::vector<vhtm::Zee>" />
   <class name="edm::Wrapper<std::vector<vhtm::Zee>>" />
   <class name="std::vector<vhtm::Zmumu>" />

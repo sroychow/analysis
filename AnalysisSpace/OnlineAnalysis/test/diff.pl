@@ -14,8 +14,9 @@ sub readFile
     chop;
     my ($run, $lumi, $event, $mass4l, $massz1, $massz2, $dbkg_kin, $dbkg, $dgg, $dhjj, $d0, $njets, $jet1pt, $jet2pt, $cat) = (split /:/);
       #= (split /:/)[0,1,2,3,4,5,-4,-1]; 
-#    my $key = join(":", $run, $lumi, $event, $mass4l, $massz1, $massz2, $dbkg_kin, $dbkg, $dgg, $dhjj, $d0, $njets, $jet1pt, $jet2pt, $cat);
-    my $key = join(":", $run, $lumi, $event,$mass4l, $massz1, $massz2);
+    #my $key = join(":", $run, $lumi, $event, $mass4l, $massz1, $massz2, $dbkg_kin, $dbkg, $dgg, $dhjj, $d0, $njets, $jet1pt, $jet2pt, $cat);
+    #my $key = join(":", $run, $lumi, $event,$mass4l, $massz1, $massz2);
+    my $key = join(":", $run, $lumi, $event)
     $h->{$key} = $_;
   }
   close INPUT;

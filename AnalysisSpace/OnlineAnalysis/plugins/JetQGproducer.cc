@@ -57,12 +57,14 @@ JetQGproducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   //https://twiki.cern.ch/twiki/bin/viewauth/CMS/QuarkGluonLikelihood#CMSSW_8_0_20_X_recomendation
   edm::Handle<edm::ValueMap<float> > qgHandle;
   iEvent.getByToken(qgToken_, qgHandle);
-
+  //std::cout << "Found Jets size=" << jets->size() << std::endl;
   //Steps
   //1. Skim the jet collection. Pt > 30. , |eta| < 4.7
   //2. Add the q/g value from the valuemap
   //If MC: apply smearing
+  int i = 1;
   for(auto jet = jets->begin();  jet != jets->end(); ++jet) {
+    //std::cout << "Jet" << i << " pt=" <<  jet->pt() << " eta=" << jet->eta() << std::endl;
     if(jet->pt() <= ptCut_)     continue;
     if(std::fabs(jet->eta()) >= etaCut_)    continue;
     edm::RefToBase<pat::Jet> jetRef(edm::Ref<edm::View<pat::Jet> >(jets, jet - jets->begin()));
@@ -111,13 +113,16 @@ JetQGproducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     TLorentzVector *jet_jerup = new TLorentzVector(jercorrup*jet->px(),jercorrup*jet->py(),jercorrup*jet->pz(),jercorrup*jet->energy());
     TLorentzVector *jet_jerdn = new TLorentzVector(jercorrdn*jet->px(),jercorrdn*jet->py(),jercorrdn*jet->pz(),jercorrdn*jet->energy());
     pat::Jet qJet(*jet);
+    //std::cout << "Adding qg tag to jet" << i << " with pt:" << qJet.pt() << "\t qg=" << qgLikelihood << std::endl;
     qJet.addUserFloat("qgLikelihood",qgLikelihood); 
     qJet.addUserData("jet_jerP4",*jet_jer);   
     qJet.addUserData("jet_jerupP4",*jet_jerup);   
     qJet.addUserData("jet_jerdnP4",*jet_jerdn);   
     qgJets->push_back(qJet);
+    //std::cout << "jet" << i << " pt up=" << jet_jerup->Pt() << "\t pt down=" << jet_jerdn->Pt() << std::endl;
+    i++;
   }
-  
+  //std::cout << "Writing new pat jet vector to event with size" << qgJets->size() << std::endl; 
   std::auto_ptr<std::vector<pat::Jet> > ptr(qgJets);
   iEvent.put(ptr);
 }

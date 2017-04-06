@@ -43,6 +43,7 @@ class PhysicsObjectSelector {
     void selectObjects(const edm::Handle<pat::MuonCollection>& muons, 
                        const edm::Handle<pat::ElectronCollection>& electrons, 
                        const edm::Handle<pat::PackedCandidateCollection>& pfs, 
+                       const edm::Handle<pat::JetCollection>& jets, 
                        const reco::Vertex& vit, const double evrho);
     
     //access functions
@@ -60,7 +61,9 @@ class PhysicsObjectSelector {
     std::vector<vhtm::IsoElectron>* tightIsoEleFSRpairVec() { return tightIsoEleFSRpairVec_; }
     std::vector<vhtm::IsoMuon>* tightIsoMuFSRpairVec() { return tightIsoMuFSRpairVec_; }
     std::vector<pat::Jet>* looseJetVec() { return looseJetVec_; }
-   
+    void printObjects(std::ostream& os = std::cout);
+    void printMuonInfo(const pat::Muon&, std::ostream& os =std::cout);
+    void printElectronInfo(const pat::Electron& ele, std::ostream& os = std::cout);
   private:
     bool verbosity_;
     std::vector<pat::Muon>* looseMulist_;
@@ -72,11 +75,16 @@ class PhysicsObjectSelector {
     std::vector<pat::PackedCandidate>* FSRVec_;
     std::vector< std::pair< pat::Electron, std::vector<pat::PackedCandidate> >>* looseSIPEleFSRpairVec_;
     std::vector< std::pair< pat::Muon, std::vector<pat::PackedCandidate> >>* looseSIPMuFSRpairVec_;
+
     std::vector< std::pair< pat::Electron, std::vector<pat::PackedCandidate> >>* tightSIPEleFSRpairVec_;
     std::vector< std::pair< pat::Muon, std::vector<pat::PackedCandidate> >>* tightSIPMuFSRpairVec_;
+
+
     std::vector<vhtm::IsoElectron>* tightIsoEleFSRpairVec_;
     std::vector<vhtm::IsoMuon>* tightIsoMuFSRpairVec_;
     std::vector<TLorentzVector>* selectedIsoObjectsP4_;//p4 of selected iso objects + fsr
     std::vector<pat::Jet>* looseJetVec_;
+
+    reco::Vertex pVtx_;
 };
 #endif

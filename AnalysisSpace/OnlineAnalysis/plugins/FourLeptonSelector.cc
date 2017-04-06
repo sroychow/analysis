@@ -7,6 +7,8 @@
 #include "AnalysisSpace/OnlineAnalysis/src/ZCandidateSelector.h"
 #include "AnalysisSpace/OnlineAnalysis/src/ZZCandidateSelector.h"
 #include "AnalysisSpace/OnlineAnalysis/src/KinZrefitter.h"
+//TreeMaker headers
+#include "AnalysisSpace/TreeMaker/interface/Utility.h"
 // constructors and destructor
 //
 FourLeptonSelector::FourLeptonSelector(const edm::ParameterSet& iConfig) :
@@ -33,8 +35,14 @@ FourLeptonSelector::FourLeptonSelector(const edm::ParameterSet& iConfig) :
    mela_->setCandidateDecayMode(TVar::CandidateDecay_ZZ);  
    syncDumpf_.open(syncFilename_.c_str(), ios::out);
    if (!syncDumpf_) std::cerr << "Output File: " << syncFilename_ << " could not be opened!" << endl;
+   run_ = 0;
+   lumi_ = 0;
+   event_= 0;
+   hasSelectedZZ_ = false;
+   m4l_ = 0.;
+   mZ1_ = 0.;
+   mZ2_ = 0.;
 }
-
 
 FourLeptonSelector::~FourLeptonSelector()
 {
@@ -62,6 +70,21 @@ FourLeptonSelector::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
    iEvent.getByToken(vertexToken_, primaryVertices);
    const reco::Vertex& vit = primaryVertices->front();
 
+   const reco::Vertex *PV = 0;
+   for (unsigned int i=0; i<primaryVertices->size(); i++) {
+        PV = &(primaryVertices->at(i));        
+        if (PV->chi2()==0 && PV->ndof()==0) continue;
+        if (PV->ndof()<=4 || PV->position().Rho()>2.0 || fabs(PV->position().Z())>24.0) continue;
+        break;
+   } 
+   std::cout << "PV" 
+   << std::setprecision(2)
+     << std::setw(8) << PV->ndof()
+     << std::setw(8) << PV->position().Z() 
+     << std::setw(8) << PV->chi2()
+     << std::setw(8) << PV->position().Rho()
+      << std::endl;
+
    edm::Handle<pat::MuonCollection> muons;
    iEvent.getByToken(muonToken_, muons);
   
@@ -71,71 +94,102 @@ FourLeptonSelector::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
    edm::Handle<pat::PackedCandidateCollection> pfs;
    iEvent.getByToken(pfToken_, pfs);
    
+   edm::Handle<pat::JetCollection> jets;
+   iEvent.getByToken(jetToken_, jets);
+
    PhysicsObjectSelector pObjsel(verbosity_);
-   pObjsel.selectObjects(muons, electrons, pfs, vit, evrho);
+   pObjsel.selectObjects(muons, electrons, pfs, jets, vit, evrho);
 
    std::vector<vhtm::IsoElectron>*  iele = pObjsel.tightIsoEleFSRpairVec();
    std::vector<vhtm::IsoMuon>* imu = pObjsel.tightIsoMuFSRpairVec();
    //ignore event if tight electron + muon < 4
-   if(iele->size() + imu->size() >= 4)  nEvtswith4Lep_++;
-   ZCandidateSelector zSel;
-   zSel.selectZcandidates(*imu, *iele);
-   std::vector<vhtm::Zee>* zeeV = zSel.getZeeVec();
-   std::vector<vhtm::Zmumu>* zmmV = zSel.getZmumuVec();  
-   if(zeeV->size() + zmmV->size() >= 2)   nEvtwith2Z_++;
-   ZZCandidateSelector zzSel;
-   zzSel.selectZZcandidates(*zeeV, *zmmV);
-   std::vector<vhtm::ZZcandidate> zzcandV = (*zzSel.getZZVec());
-   bool m4 = false;
-   bool e4 = false;
-   bool m2e2 = false;
-   bool foundbestZ = false;
- 
-  if(zzcandV.size() >= 1)  foundbestZ = true;
-
-   vhtm::ZZcandidate bestZZcand;
-   if(zzcandV.size() == 1)   {
-     nEvtwithZZ_++;
-     bestZZcand = zzcandV[0];
-     KDCalculator kdc;
-     kdc.computeKDforbestZZ(mela_, bestZZcand);
-   } 
-   else if(zzcandV.size() > 1)   {
-     nEvtwithZZ_++;
-     KDCalculator kdc;
-     for(auto& zz : zzcandV){
-       kdc.computeKDforbestZZ(mela_, zz);
-     }
-     //If more than one ZZ candidate survives, choose the one with the highest value of P_sig/P_bkg (p0plus_VAJHU/bkg_VAMCFM). 
-     //To choose among candidates that use the same 4 leptons (alternate pairings in 4mu/4e), 
-     //always choose the one with mZ1 closest to nominal mZ. 
-     std::sort(zzcandV.begin(), zzcandV.end(), HZZ4lUtil::ZZkdComparator());
-     bestZZcand = zzcandV[0];
-     for(unsigned int i = 1; i < zzcandV.size(); i++) {
-       if(bestZZcand.Dbkgkin() > zzcandV[i].Dbkgkin()) {
-         //foundbestZ = true;//no need to check others   
-         break;
+   if(iele->size() + imu->size() >= 4)  {
+     nEvtswith4Lep_++;
+     ZCandidateSelector zSel;
+     zSel.selectZcandidates(*imu, *iele);
+     std::vector<vhtm::Zee>* zeeV = zSel.getZeeVec();
+     std::vector<vhtm::Zmumu>* zmmV = zSel.getZmumuVec();  
+     if(zeeV->size() + zmmV->size() >= 2)   {
+       nEvtwith2Z_++;
+       ZZCandidateSelector zzSel;
+       std::vector<HZZ4lUtil::zzFail> zfails;
+       zzSel.selectZZcandidates(*zeeV, *zmmV, zfails);
+       std::vector<vhtm::ZZcandidate> zzcandV = (*zzSel.getZZVec());
+       bool m4 = false;
+       bool e4 = false;
+       bool m2e2 = false;
+       bool foundbestZ = false;
+       if(zzcandV.size() >= 1)  foundbestZ = true;
+       KDCalculator kdc;
+       vhtm::ZZcandidate bestZZcand;
+       if(zzcandV.size() == 1)   {
+         nEvtwithZZ_++;
+         bestZZcand = zzcandV[0];
+         kdc.computeKDforbestZZ(mela_, bestZZcand);
+       } 
+       else if(zzcandV.size() > 1)   {
+         nEvtwithZZ_++;
+         for(auto& zz : zzcandV){
+	   kdc.computeKDforbestZZ(mela_, zz);
+	 }
+	 //If more than one ZZ candidate survives, choose the one with the highest value of P_sig/P_bkg (p0plus_VAJHU/bkg_VAMCFM). 
+	 //To choose among candidates that use the same 4 leptons (alternate pairings in 4mu/4e), 
+	 //always choose the one with mZ1 closest to nominal mZ. 
+	 std::sort(zzcandV.begin(), zzcandV.end(), HZZ4lUtil::ZZkdComparator());
+	 bestZZcand = zzcandV[0];
+	 for(unsigned int i = 1; i < zzcandV.size(); i++) {
+	   if(bestZZcand.Dbkgkin() > zzcandV[i].Dbkgkin()) {
+	     //foundbestZ = true;//no need to check others   
+	     break;
+	   }
+	   else if(bestZZcand.Dbkgkin() == zzcandV[i].Dbkgkin()){
+	     if(bestZZcand.mZ1 > zzcandV[i].mZ1) continue;          
+	     else if(bestZZcand.mZ1 == zzcandV[i].mZ1) {//for same Z1, choose the one with Z2 higset sumptlepton
+	       if(bestZZcand.Z2lepPtavg > zzcandV[i].Z2lepPtavg)  continue;
+	       else bestZZcand = zzcandV[i];
+	     } else bestZZcand = zzcandV[i];
+	   }  
+	 }
        }
-       else if(bestZZcand.Dbkgkin() == zzcandV[i].Dbkgkin()){
-         if(bestZZcand.mZ1 > zzcandV[i].mZ1) continue;          
-         else if(bestZZcand.mZ1 == zzcandV[i].mZ1) {//for same Z1, choose the one with Z2 higset sumptlepton
-           if(bestZZcand.Z2lepPtavg > zzcandV[i].Z2lepPtavg)  continue;
-           else bestZZcand = zzcandV[i];
-         } else bestZZcand = zzcandV[i];
-       }  
-     }
-   }
-   if(foundbestZ) {
-     if(bestZZcand.flavour == HZZ4lUtil::ZZType::mmmm) m4 = true;
-     else if(bestZZcand.flavour == HZZ4lUtil::ZZType::eeee) e4 = true;
-     else if(bestZZcand.flavour == HZZ4lUtil::ZZType::eemm || bestZZcand.flavour == HZZ4lUtil::ZZType::mmee)  m2e2 = true;
-     if(m2e2) nEvtwith2e2m_++;
-     if(m4) nEvtwith4m_++;
-     if(e4) nEvtwith4e_++;
-     KinZrefitter kinzr(isMC_);
-     kinzr.doZmassrefit(bestZZcand);
-     HZZ4lUtil::syncDumper(iEvent.id().run(), iEvent.id().luminosityBlock(),iEvent.id().event(), bestZZcand, syncDumpf_);
-   }
+       if(foundbestZ) {
+	 if(bestZZcand.flavour == HZZ4lUtil::ZZType::mmmm) m4 = true;
+	 else if(bestZZcand.flavour == HZZ4lUtil::ZZType::eeee) e4 = true;
+	 else if(bestZZcand.flavour == HZZ4lUtil::ZZType::eemm || bestZZcand.flavour == HZZ4lUtil::ZZType::mmee)  m2e2 = true;
+	 if(m2e2) nEvtwith2e2m_++;
+	 if(m4) nEvtwith4m_++;
+	 if(e4) nEvtwith4e_++;
+	 KinZrefitter kinzr(isMC_);
+	 kinzr.doZmassrefit(bestZZcand);
+	 kdc.computeKDforcategory(mela_, bestZZcand, *(pObjsel.looseJetVec()));
+	 HZZ4lUtil::syncDumper(iEvent.id().run(), iEvent.id().luminosityBlock(),iEvent.id().event(), bestZZcand, *(pObjsel.looseJetVec()), syncDumpf_);
+         //set variables to be filled in tree
+         run_ = iEvent.id().run();
+         lumi_ = iEvent.id().luminosityBlock();
+         event_ = iEvent.id().event();
+         hasSelectedZZ_ = true;
+       } else {
+         //set variables to be filled in tree
+         run_ = iEvent.id().run();
+         lumi_ = iEvent.id().luminosityBlock();
+         event_ = iEvent.id().event();
+         hasSelectedZZ_ = false;
+         std::cout << "Reason for ZZ selection failure" << std::endl;
+         std::cout << "Flavour\tIndex\tIndex\tFailure\n";
+         for(auto& t : zfails) {
+           std::cout << t.flav << "\t" << t.z1idx << "\t" << t.z2idx << "\t" << t.fail << std::endl;
+         }
+       }//if block for best ZZ candidate
+     } else {
+       std::cout << "Selected Zvector size less than 2" << std::endl;
+       std::cout << "<<<<Dumping Zmm>>>>\n";
+       for(auto& z : *zmmV)   z.dump();
+       std::cout << "<<<<Dumping Zee>>>>\n";
+       for(auto& z : *zeeV)   z.dump();
+     }//if block for z vector size check
+   } else {
+     std::cout << "Event doesn't have 4 isolated leptons!" << std::endl;
+     pObjsel.printObjects();
+   }//if block for 4 isolated leptons
 }
 
 
@@ -143,6 +197,14 @@ FourLeptonSelector::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 void 
 FourLeptonSelector::beginJob()
 {
+  // Get TTree pointer
+  std::string tree_name = "onlineTree";
+  TTree* tree = vhtm::Utility::getTree(tree_name);
+  assert(tree);
+  tree->Branch("run", &run_, "run_/I");
+  tree->Branch("lumi", &lumi_, "lumi_/I");
+  tree->Branch("event", &event_, "event_/I");
+  tree->Branch("hasSelectedZZ",&hasSelectedZZ_, "hasSelectedZZ_/O");
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

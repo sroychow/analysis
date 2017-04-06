@@ -54,29 +54,37 @@ PhysicsObjectSelector::muonSelector(const edm::Handle<pat::MuonCollection>& muon
   looseMulist_->clear();
   looseMuSIPlist_->clear();
   std::vector<pat::PackedCandidate> pftemp;
-  for( const auto& mu : *muons ) {
-    if(mu.pt() <= 5.) continue;
-    if(std::fabs(mu.eta()) > 2.4) continue;
+  //for(auto& mu : *muons ) {
+  for(unsigned int i = 0; i<muons->size(); i++) {
+    pat::Muon mu = muons->at(i);
     reco::TrackRef tk = mu.muonBestTrack();
     double dxyWrtPV = -99.;
     double dzWrtPV = -99.;
     dxyWrtPV = tk->dxy(vit.position());
     dzWrtPV  = tk->dz(vit.position());
-    
-    if(std::fabs(dxyWrtPV) >= 0.5 )      continue;
-    if(std::fabs(dzWrtPV) >= 1.)         continue;
-    bool quality = (mu.isGlobalMuon() || ( mu.isTrackerMuon() && mu.numberOfMatches() >= 0)) && mu.muonBestTrackType()!=2 ;
+    //add user floats now to avoid recalculating during object dump
+    mu.addUserFloat("hzzdxyWrtPV", dxyWrtPV); 
+    mu.addUserFloat("hzzdzWrtPV", dzWrtPV); 
+    mu.addUserFloat("hzzSIP", mu.dB(pat::Muon::PV3D)/mu.edB(pat::Muon::PV3D));
+    bool highPtid = false;
+    highPtid = isTrackerHighPt(mu,vit) && mu.pt() > 200.;
+    bool isTight = mu.isPFMuon() || highPtid;
+    mu.addUserInt("hzzhighPtid", highPtid);
+    mu.addUserInt("hzzisTight", isTight);
+    //loose selection
+    if(mu.pt() <= 5.) continue;//pt > 5 GeV
+    if(std::abs(mu.eta()) >= 2.4) continue;//|eta| < 2.4
+    if(std::abs(dxyWrtPV) >= 0.5 )      continue;//dxy < 0.5
+    if(std::abs(dzWrtPV) >= 1.)         continue;//dz < 1.
+    bool quality = (mu.isGlobalMuon() || ( mu.isTrackerMuon() && mu.numberOfMatches() > 0)) && mu.muonBestTrackType()!=2 ;
     if(!quality) continue;
     looseMulist_->push_back(mu);
-    if(std::fabs(mu.dB(pat::Muon::PV3D)/mu.edB(pat::Muon::PV3D)) >= 4.)    continue;
+    //sip cut
+    if(std::abs(mu.dB(pat::Muon::PV3D)/mu.edB(pat::Muon::PV3D)) >= 4.)    continue;
     looseMuSIPlist_->push_back(mu);
-    //make a dummy entry here; Filled in fsr block
     looseSIPMuFSRpairVec_->push_back({mu,pftemp});
-    bool highPtid = false;
-    highPtid = isTrackerHighPt(mu,vit) && mu.pt() > 200;
-    bool isTight = mu.isPFMuon() || highPtid;
-    if(!isTight)    continue; 
-    tightMulist_->push_back(mu);
+    //if(!isTight)    continue; 
+    //tightMulist_->push_back(mu);
   }
 }
 
@@ -89,42 +97,50 @@ bool PhysicsObjectSelector::isTrackerHighPt(const pat::Muon & mu, const reco::Ve
 	   && mu.innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 );  
 }
 
-//Electron Selection
+////////////Electron Selection//////////////////////////
 void PhysicsObjectSelector::electronSelector(const edm::Handle<pat::ElectronCollection>& electrons, const reco::Vertex& vit) {
   looseElelist_->clear();
   looseEleSIPlist_->clear();
   tightElelist_->clear();  
   std::vector<pat::PackedCandidate> pftemp;
   
-  for (const auto& ele: *electrons) {
-    
-    bool hasGsfTrack = ele.gsfTrack().isNonnull() ? true : false;
-    if (ele.pt() <= 7 ) continue;
-    if (fabs(ele.eta()) >= 2.5) continue;
-    
+  //for (auto& ele: *electrons) {
+  for(unsigned int i = 0; i<electrons->size(); i++) {
+    pat::Electron ele = electrons->at(i);
     double dxyWrtPV = -99.;
     double dzWrtPV = -99.;
-    if (hasGsfTrack) {
+    if (ele.gsfTrack().isNonnull()) {
       reco::GsfTrackRef tk = ele.gsfTrack();
       dxyWrtPV = tk->dxy(vit.position());
       dzWrtPV  = tk->dz(vit.position());
     }
-    if(dxyWrtPV >= 0.5) continue;
-    if(dzWrtPV >= 1.) continue;
+    //add user floats now to avoid recalculating during object dump
+    ele.addUserFloat("hzzdxyWrtPV", dxyWrtPV); 
+    ele.addUserFloat("hzzdzWrtPV", dzWrtPV); 
+    ele.addUserFloat("hzzSIP", ele.dB(pat::Electron::PV3D)/ele.edB(pat::Electron::PV3D));
+    bool isTight = HZZ4lUtil::passBDT(std::abs(ele.superCluster()->eta()), ele.pt(), ele.userFloat("electronBDT"));
+    ele.addUserInt("hzzisTight", isTight);
+    //loose selection
+    if (ele.pt() <= 7 ) continue;//pt < 7
+    if (abs(ele.eta()) >= 2.5) continue;//|eta| < 2.5
+    if(std::abs(dxyWrtPV) >= 0.5) continue; //dxy < 5. 
+    if(std::abs(dzWrtPV) >= 1.) continue;//dz < 1.
     looseElelist_->push_back(ele);
-    if(std::fabs(ele.dB(pat::Electron::PV3D)/ele.edB(pat::Electron::PV3D)) >= 4.)    continue;
+    //sip cut
+    if(std::abs(ele.dB(pat::Electron::PV3D)/ele.edB(pat::Electron::PV3D)) >= 4.)    continue;
     if(!leptonCrosscleaned(ele))   continue;
     looseEleSIPlist_->push_back(ele);
     looseSIPEleFSRpairVec_->push_back({ele,pftemp});
-    if(HZZ4lUtil::passBDT(std::fabs(ele.superCluster()->eta()), ele.pt(), ele.userFloat("electronBDT")))
-      tightElelist_->push_back(ele);
+    //tight cut
+    //if(isTight)
+    //tightElelist_->push_back(ele);
   }
 }
-
+//Remove electrons which are within ΔR(eta,phi)<0.05 of a muon passing tight ID && SIP<4 
 bool PhysicsObjectSelector::leptonCrosscleaned(const pat::Electron& ele) {
   bool flag = true;
   if(verbosity_)  std::cout << "Entering Cross clean" << std::endl;
-  for (const auto& mu: *looseMuSIPlist_) {
+  for (const auto& mu: *tightMulist_) {
     if (HZZ4lUtil::getP4(ele).DeltaR(HZZ4lUtil::getP4(mu)) < 0.05) {
       flag = false;
       break;
@@ -139,7 +155,7 @@ void PhysicsObjectSelector::fsrSelector(const edm::Handle<pat::PackedCandidateCo
   //tightSIPMuFSRpairVec_->clear();
   if(verbosity_)   std::cout << "Loose Muon/Electron size=" << looseSIPMuFSRpairVec_->size() << "/" << looseSIPEleFSRpairVec_->size() << std::endl;
   for (auto& pfcand: *pfs) {
-    if (pfcand.pdgId() != 22 || pfcand.pt() <= 2. || std::fabs(pfcand.eta()) >= 2.4) continue;
+    if (pfcand.pdgId() != 22 || pfcand.pt() <= 2. || std::abs(pfcand.eta()) >= 2.4) continue;
     //calculate  Isolation for cone size 30
     std::vector<double> isotemp;   
     LeptonIsoCalculator::calcIsoFromPF(pfcand, pfs, 0.30, isotemp);
@@ -167,6 +183,8 @@ void PhysicsObjectSelector::fsrSelector(const edm::Handle<pat::PackedCandidateCo
       else {
 	TLorentzVector prephoP4 = HZZ4lUtil::getP4(looseSIPEleFSRpairVec_->at(elindx).second.at(0));
 	TLorentzVector eleP4 = HZZ4lUtil::getP4(looseSIPEleFSRpairVec_->at(elindx).first);
+        //lowest deltaR/et2 
+        //if fsr exits, replace if dRovEt2 is greater compared to current candidate
 	if (eleP4.DeltaR(prephoP4)/prephoP4.Et2() > dRovEt2) {
 	  looseSIPEleFSRpairVec_->at(elindx).second.clear();
 	  looseSIPEleFSRpairVec_->at(elindx).second.push_back(pfcand);
@@ -179,6 +197,8 @@ void PhysicsObjectSelector::fsrSelector(const edm::Handle<pat::PackedCandidateCo
       else {
 	TLorentzVector prephoP4 = HZZ4lUtil::getP4(looseSIPMuFSRpairVec_->at(muindx).second.at(0));
 	TLorentzVector muP4 = HZZ4lUtil::getP4(looseSIPMuFSRpairVec_->at(muindx).first);
+        //lowest deltaR/et2 
+        //if fsr exits, replace if dRovEt2 is greater compared to current candidate
 	if (muP4.DeltaR(prephoP4)/prephoP4.Et2() > dRovEt2) {
 	  looseSIPMuFSRpairVec_->at(muindx).second.clear();
 	  looseSIPMuFSRpairVec_->at(muindx).second.push_back(pfcand);
@@ -187,15 +207,53 @@ void PhysicsObjectSelector::fsrSelector(const edm::Handle<pat::PackedCandidateCo
       }
     }
   }//end loop over pf cand
+  //fill tight leptons with fsr vector and the fsr vector
+  //alternative implementation
+  for(unsigned int i = 0; i<looseSIPMuFSRpairVec_->size(); i++){
+    auto&  mfsr = looseSIPMuFSRpairVec_->at(i);
+    bool hasFsr = false;
+    TLorentzVector pfP;
+    if(!mfsr.second.empty()) {
+      pfP = HZZ4lUtil::getP4(mfsr.second.at(0));
+      hasFsr = true;
+    }  
+    else pfP.SetPtEtaPhiE(0.,0.,0.,0.);
+    looseMuSIPlist_->at(i).addUserInt("hasFSR", hasFsr);
+    looseMuSIPlist_->at(i).addUserData("fsrP4", pfP);
+    pfP += HZZ4lUtil::getP4(mfsr.first);//add pf P4 to lep P4.
+    looseMuSIPlist_->at(i).addUserData("dressedLepP4", pfP); 
+    if(looseMuSIPlist_->at(i).userInt("hzzisTight")) 
+      tightMulist_->push_back(looseMuSIPlist_->at(i));  
+  }
+  for(unsigned int i = 0; i<looseSIPEleFSRpairVec_->size(); i++){
+    auto&  efsr = looseSIPEleFSRpairVec_->at(i);
+    bool hasFsr = false;
+    TLorentzVector pfP;
+    if(!efsr.second.empty()) {
+      pfP = HZZ4lUtil::getP4(efsr.second.at(0));
+      hasFsr = true;
+    }  
+    else pfP.SetPtEtaPhiE(0.,0.,0.,0.);
+    looseEleSIPlist_->at(i).addUserInt("hasFSR", hasFsr);
+    looseEleSIPlist_->at(i).addUserData("fsrP4", pfP);
+    pfP += HZZ4lUtil::getP4(efsr.first);//add pf P4 to lep P4.
+    looseEleSIPlist_->at(i).addUserData("dressedLepP4", pfP); 
+    if(looseEleSIPlist_->at(i).userInt("hzzisTight")) 
+      tightElelist_->push_back(looseEleSIPlist_->at(i));  
+  }
+
+  //****
   for(auto& efsr: *looseSIPEleFSRpairVec_) {
-    if(!efsr.second.empty()) FSRVec_->push_back(efsr.second.at(0));
-    if(HZZ4lUtil::passBDT(std::fabs(efsr.first.superCluster()->eta()), efsr.first.pt(), efsr.first.userFloat("electronBDT")))
+    if(!efsr.second.empty()) {
+      FSRVec_->push_back(efsr.second.at(0));
+    }
+    if(HZZ4lUtil::passBDT(std::abs(efsr.first.superCluster()->eta()), efsr.first.pt(), efsr.first.userFloat("electronBDT")))
       tightSIPEleFSRpairVec_->push_back(efsr);
   }
   for(auto& mufsr: *looseSIPMuFSRpairVec_) {
     if(!mufsr.second.empty()) FSRVec_->push_back(mufsr.second.at(0));
     bool highPtid = false;
-    highPtid = isTrackerHighPt(mufsr.first,vit) && mufsr.first.pt() > 200;
+    highPtid = isTrackerHighPt(mufsr.first,vit) && mufsr.first.pt() > 200.;
     if( mufsr.first.isPFMuon() || highPtid )
       tightSIPMuFSRpairVec_->push_back(mufsr);
   }
@@ -204,16 +262,18 @@ void PhysicsObjectSelector::fsrSelector(const edm::Handle<pat::PackedCandidateCo
 bool PhysicsObjectSelector::passedSuperClusterVeto(const pat::PackedCandidate& pfcand, bool verbose) {
   // Supercluster veto by PF reference: veto all the PF candidates used in the PF cluster, 
   // as returned by the method electron.associatedPackedPFCandidates()
+  //looseElelist_
   bool passedVeto = true;
   if (verbose && looseEleSIPlist_->size())
     std::cout << "    pfPt   pfEta   pfPhi   elePt   scEta  elePhi    dEta    dPhi      dR" << std::endl;
   TLorentzVector pfcandP4 = HZZ4lUtil::getP4(pfcand);
-  for (const auto& ele: *looseEleSIPlist_) {
+  //for (const auto& ele: *looseEleSIPlist_) {
+  for (const auto& ele: *looseElelist_) {
     const auto& pfref = ele.associatedPackedPFCandidates();
     for(edm::RefVector<pat::PackedCandidateCollection>::const_iterator it = pfref.begin();  it!=pfref.end(); it++) {
       TLorentzVector p4ref;
       p4ref.SetPtEtaPhiE((*it)->pt(),(*it)->eta(),(*it)->phi(),(*it)->energy());
-      if(std::fabs(p4ref.Pt() -pfcandP4.Pt()) < 1e-10 && std::fabs(p4ref.Eta() -pfcandP4.Eta()) < 1e-10 &&  std::fabs(p4ref.Phi() -pfcandP4.Phi()) < 1e-10) {
+      if(std::abs(p4ref.Pt() -pfcandP4.Pt()) < 1e-10 && std::abs(p4ref.Eta() -pfcandP4.Eta()) < 1e-10 &&  std::abs(p4ref.Phi() -pfcandP4.Phi()) < 1e-10) {
         passedVeto = false;
         break;
       }
@@ -224,7 +284,7 @@ bool PhysicsObjectSelector::passedSuperClusterVeto(const pat::PackedCandidate& p
 
 double PhysicsObjectSelector::findClosestLepton(const pat::PackedCandidate& pfPho, int& muindx, int& elindx) {
   TLorentzVector phoP4 = HZZ4lUtil::getP4(pfPho);
-  double dRmin = 999.;
+  double dRmin = 0.5;
   muindx = -1;
   // First consider loose muons
   for (unsigned int i = 0; i < looseSIPMuFSRpairVec_->size(); ++i) {
@@ -253,7 +313,21 @@ double PhysicsObjectSelector::findClosestLepton(const pat::PackedCandidate& pfPh
 }
 
 void PhysicsObjectSelector::findIsolatedleptons(const double evrho) {
+  //alternate implementation
+  for(auto& te: *tightElelist_) {
+    double eiso = LeptonIsoCalculator::geteleReliso(te, FSRVec_, evrho);
+    te.addUserFloat("hzzrelIso", eiso);
+    if(eiso < 0.35)  te.addUserInt("hzzpassIso", 1);
+    else  te.addUserInt("hzzpassIso", 0);
+  }
+  for(auto& tm: *tightMulist_) {
+    double miso = LeptonIsoCalculator::computeMuonReliso(tm, FSRVec_);
+    tm.addUserFloat("hzzrelIso", miso);
+    if(miso < 0.35)  tm.addUserInt("hzzpassIso", 1);
+    else  tm.addUserInt("hzzpassIso", 0);
+  }
 
+  //
   for(auto& efsr : *tightSIPEleFSRpairVec_) {
     double eiso = LeptonIsoCalculator::geteleReliso(efsr.first, FSRVec_, evrho);
     if(eiso >= 0.35)   continue;  
@@ -297,7 +371,7 @@ void PhysicsObjectSelector::findIsolatedleptons(const double evrho) {
 void PhysicsObjectSelector::jetSelector(const edm::Handle<pat::JetCollection>& jets) {
   for(auto& j: *jets) {
     if(j.pt() <= 30)       continue;
-    if(std::fabs(j.eta()) >= 4.7)   continue;
+    if(std::abs(j.eta()) >= 4.7)   continue;
     if( !jetLeptonCleaning(HZZ4lUtil::getP4(j)))      continue;
     //if (!isLooseJet(j))    continue;
     looseJetVec_->push_back(j);
@@ -313,7 +387,7 @@ bool PhysicsObjectSelector::jetLeptonCleaning(const TLorentzVector& jetP4, const
 }
 
 bool PhysicsObjectSelector::isLooseJet(const pat::Jet& jet) {
-  bool centralCut = (std::fabs(jet.eta()) <= 2.4) 
+  bool centralCut = (std::abs(jet.eta()) <= 2.4) 
       ? (jet.chargedHadronEnergyFraction() > 0 && 
   	 jet.chargedMultiplicity() > 0 && 
   	 jet.chargedEmEnergyFraction() < 0.99)
@@ -328,9 +402,11 @@ bool PhysicsObjectSelector::isLooseJet(const pat::Jet& jet) {
 
 void PhysicsObjectSelector::selectObjects(const edm::Handle<pat::MuonCollection>& muons, 
                                           const edm::Handle<pat::ElectronCollection>& electrons, 
-                                          const edm::Handle<pat::PackedCandidateCollection>& pfs, 
+                                          const edm::Handle<pat::PackedCandidateCollection>& pfs,
+                                          const edm::Handle<pat::JetCollection>& jets,  
                                           const reco::Vertex& vit, 
                                           const double evrho) {
+  pVtx_ = vit;
   // order of execution is crucial!
   // muonSelector must precede electronSelector
   muonSelector(muons, vit);
@@ -344,5 +420,125 @@ void PhysicsObjectSelector::selectObjects(const edm::Handle<pat::MuonCollection>
   findIsolatedleptons(evrho);
   if(verbosity_)   std::cout << "Isolated Leptons Done!!" << std::endl;
   // Jets
-  //jetSelector(wt);
+  jetSelector(jets);
+  std::sort( (*looseJetVec_).begin(), (*looseJetVec_).end(), HZZ4lUtil::PtComparatorPAT<pat::Jet>() );
+}
+
+void PhysicsObjectSelector::printObjects(std::ostream& os) {
+  std::cout << "<<<<Vertex Info>>>>" << std::endl;
+  os << std::setw(6) << "ndf"
+     << std::setw(6) << "z"
+     << std::setw(6) << "chi2"
+     << std::setw(6) << "rho" 
+  << std::endl;
+  os << std::setprecision(2)
+     << std::setw(8) << pVtx_.ndof()
+     << std::setw(8) << pVtx_.position().Z() 
+     << std::setw(8) << pVtx_.chi2()
+     << std::setw(8) << pVtx_.position().Rho()
+  << std::endl;
+  std::cout << "<<<<MUON INFO>>>>" << std::endl;
+  os  << std::setw(6) << "Charge"
+      << std::setw(8) << "pt"
+      << std::setw(8) << "eta"
+      << std::setw(8) << "phi"
+      << std::setw(8) << "energy"
+      << std::setw(9) << "dxy"
+      << std::setw(9) << "dz"
+      << std::setw(9) << "SIP"
+      << std::setprecision(1)
+      << std::setw(9) << "isGlobal"
+      << std::setw(9) << "isTracker"
+      << std::setw(9) << "nMatches"
+      << std::setw(6) << "isPF"
+      << std::setw(6) << "HptId"
+      << std::setw(6) << "isTight"
+      << std::endl;  
+  std::cout << "Print Loose Muons::" << std::endl;
+  for(const auto& mu : *looseMulist_)  printMuonInfo(mu, os);
+  std::cout << "Print Tight Muons::" << std::endl;
+  for(const auto& mu : *tightMulist_)  printMuonInfo(mu, os);
+  std::cout << "<<<<ELECTRON INFO>>>>" << std::endl;
+  os  << std::setw(6) << "Charge"
+      << std::setw(8) << "pt"
+      << std::setw(8) << "eta"
+      << std::setw(8) << "phi"
+      << std::setw(8) << "energy"
+      << std::setw(9) << "dxy"
+      << std::setw(9) << "dz"
+      << std::setw(9) << "SIP"
+      << std::setprecision(1)
+      << std::setw(8) << "scEta"
+      << std::setw(8) << "BDT"
+      << std::setw(8) << "passBDT"
+      << std::endl;  
+  std::cout << "Print Loose Elelist_::" << std::endl;
+  for(const auto& ele : *looseElelist_)  printElectronInfo(ele, os);
+  std::cout << "Print Tight Electrons::" << std::endl;
+  for(const auto& ele : *tightElelist_)  printElectronInfo(ele, os);
+  std::cout << "<<<<FSR INFO>>>>" << std::endl;
+  std::cout << "Print Selected FSR photons::" << std::endl;  
+  for(const auto& fsr : *FSRVec_)   HZZ4lUtil::printP4(fsr, os);
+  
+  std::cout << "<<<<<<Print Isolated Tight Muons>>>>>>" << std::endl;
+  for(const auto& imu : *tightIsoMuFSRpairVec_) {
+    printMuonInfo(imu.mu);
+    os << std::setprecision(5);
+    os << "Has FSR?=" << std::setw(4) << imu.hasfsr << " RelIso" << imu.relIso << std::endl;
+    if(imu.hasfsr)  {
+      os << "Attached FSR P4:-";
+      HZZ4lUtil::printP4(imu.fsr, os);
+    }
+  }
+  std::cout << "<<<<<<Print Isolated Tight Electrons>>>>>>" << std::endl;  for(const auto& iele : *tightIsoEleFSRpairVec_) {
+    printElectronInfo(iele.ele);
+    os << std::setprecision(5);
+    os << "Has FSR?=" << std::setw(4) << iele.hasfsr << " RelIso" << iele.relIso << std::endl;
+    if(iele.hasfsr)  {
+      os << "Attached FSR P4:-";
+      HZZ4lUtil::printP4(iele.fsr, os);
+    }
+  }
+}
+
+//print muon info
+void PhysicsObjectSelector::printMuonInfo(const pat::Muon& muon, std::ostream& os) {
+    os << std::setprecision(3)
+      << std::setw(6) << muon.charge()
+      << std::setw(8) << muon.pt()
+      << std::setw(8) << muon.eta()
+      << std::setw(8) << muon.phi()
+      << std::setw(8) << muon.energy()
+      << std::setw(9) << std::abs(muon.muonBestTrack()->dxy(pVtx_.position()))
+      << std::setw(8) << std::abs(muon.muonBestTrack()->dz(pVtx_.position()))
+      << std::setw(8) << std::abs(muon.dB(pat::Muon::PV3D)/muon.edB(pat::Muon::PV3D))
+      << std::setprecision(1)
+      << std::setw(8) << muon.isGlobalMuon()
+      << std::setw(8) << muon.isTrackerMuon()
+      << std::setw(8) << muon.numberOfMatches()
+      << std::setw(8) << muon.isPFMuon();
+      bool highPtid = false;
+      highPtid = isTrackerHighPt(muon,pVtx_) && muon.pt() > 200.;
+      bool isTight = muon.isPFMuon() || highPtid;
+   os << std::setw(8) << highPtid
+      << std::setw(8) << isTight
+      << std::endl;
+}
+
+//print electron info
+void PhysicsObjectSelector::printElectronInfo(const pat::Electron& ele, std::ostream& os) {
+    os << std::setprecision(3)
+      << std::setw(6) << ele.charge()
+      << std::setw(8) << ele.pt()
+      << std::setw(8) << ele.eta()
+      << std::setw(8) << ele.phi()
+      << std::setw(8) << ele.energy()
+      << std::setw(8) << std::abs(ele.gsfTrack()->dxy(pVtx_.position()))
+      << std::setw(8) << std::abs(ele.gsfTrack()->dz(pVtx_.position()))
+      << std::setw(8) << std::abs(ele.dB(pat::Electron::PV3D)/ele.edB(pat::Electron::PV3D))
+      << std::setw(8) << std::abs( ele.superCluster()->eta() )
+      << std::setw(8) << ele.userFloat("electronBDT")
+      << std::setprecision(1)
+      << std::setw(8) << HZZ4lUtil::passBDT(std::abs(ele.superCluster()->eta()), ele.pt(), ele.userFloat("electronBDT"))
+      << std::endl;
 }

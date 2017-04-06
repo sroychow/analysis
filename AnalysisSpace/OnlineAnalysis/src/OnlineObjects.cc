@@ -3,8 +3,10 @@
 
 ClassImp(vhtm::IsoElectron)
 ClassImp(vhtm::IsoMuon)
+ClassImp(vhtm::Zcandidate)
 ClassImp(vhtm::Zmumu)
 ClassImp(vhtm::Zee)
+ClassImp(vhtm::ZZcandidate)
 ClassImp(vhtm::ZZcandidate)
 ClassImp(vhtm::SelectedEvent)
 vhtm::IsoElectron::IsoElectron() :
@@ -19,6 +21,25 @@ vhtm::IsoMuon::IsoMuon() :
 {
 }
 
+vhtm::Zcandidate::Zcandidate() {
+  l1P4.SetPtEtaPhiE(0.,0.,0.,0);
+  l2P4.SetPtEtaPhiE(0.,0.,0.,0);
+  l1charge = 0;  
+  l2charge = 0;
+  mass = -999.;
+  zmassdiff = -999.;
+  //index of the leptons from tight lepton list
+  l1idx = -1;
+  l2idx = -1;
+  flavour = HZZ4lUtil::ZType::wrong;
+}
+/*
+vhtm::Zcandidate::ZZcandidate() {
+  //Z1 Z2 will be set according to HZZ selections
+  mass = -999.;
+  flavour = HZZ4lUtil::ZZType::unknown;
+}
+*/
 vhtm::Zmumu::Zmumu() :
       lep1hasfsr(false),
       lep2hasfsr(false),
@@ -27,6 +48,23 @@ vhtm::Zmumu::Zmumu() :
       mass(-1.),
       massdiff(9999.)
 {
+}
+void vhtm::Zmumu::dump(std::ostream& os) {
+  os << std::setw(8) << mass << std::setw(8) << massdiff << std::endl;
+  os << "Lepton 1:";
+  HZZ4lUtil::printP4(lep1, os);
+  os << "Lep1 has FSR?=" << std::setw(4) << lep1hasfsr << " Relative Isolation=" << lep1Iso << std::endl;
+  if(lep1hasfsr)  {
+    os << "Attached FSR P4:-";
+    HZZ4lUtil::printP4(fsrl1, os);
+  }
+  os << "Lepton 2:";
+  HZZ4lUtil::printP4(lep2, os);
+  os << "Lep2 has FSR?=" << std::setw(4) << lep2hasfsr << " Relative Isolation=" << lep2Iso << std::endl;
+  if(lep2hasfsr)  {
+    os << "Attached FSR P4:-";
+    HZZ4lUtil::printP4(fsrl2, os);
+  }
 }
 //reco::RecoCandidate& vhtm::Zmumu::getlep1(){ return  lep1;}
 //reco::RecoCandidate& vhtm::Zmumu::getlep2(){ return  lep2;}
@@ -49,7 +87,27 @@ vhtm::ZZcandidate::ZZcandidate() :
       Z1mdiff(-1.),
       Z2lepPtavg(-1.)
 {
+  
 }
+
+void vhtm::Zee::dump(std::ostream& os) {
+  os << std::setw(8) << mass << std::setw(8) << massdiff << std::endl;
+  os << "Lepton 1:";
+  HZZ4lUtil::printP4(lep1, os);
+  os << "Lep1 has FSR?=" << std::setw(4) << lep1hasfsr << " Relative Isolation=" << lep1Iso << std::endl;
+  if(lep1hasfsr)  {
+    os << "Attached FSR P4:-";
+    HZZ4lUtil::printP4(fsrl1, os);
+  }
+  os << "Lepton 2:";
+  HZZ4lUtil::printP4(lep2, os);
+  os << "Lep2 has FSR?=" << std::setw(4) << lep2hasfsr << " Relative Isolation=" << lep2Iso << std::endl;
+  if(lep2hasfsr)  {
+    os << "Attached FSR P4:-";
+    HZZ4lUtil::printP4(fsrl2, os);
+  }
+}
+
 void vhtm::ZZcandidate::setP4Vectors() 
 {  
   int id11, id12, id21, id22;
@@ -135,6 +193,24 @@ void vhtm::ZZcandidate::setP4Vectors()
   lepP4VecWithfsr.push_back(lepP4Vec[1] + fsrP4Vec[1]);
   lepP4VecWithfsr.push_back(lepP4Vec[2] + fsrP4Vec[2]);
   lepP4VecWithfsr.push_back(lepP4Vec[3] + fsrP4Vec[3]);
+}
+
+void vhtm::ZZcandidate::dump(std::ostream& os) {
+ os << "Mass Z1=" << std::setw(8) << mZ1;
+ os << "Mass Z2=" << std::setw(8) <<  mZ2 << std::endl; 
+ if(flavour == HZZ4lUtil::ZZType::eeee) {
+   Z1ee.dump(os);
+   Z2ee.dump(os);
+ } else if(flavour == HZZ4lUtil::ZZType::mmmm) {
+   Z1mm.dump(os);
+   Z2mm.dump(os);
+ } else if(flavour == HZZ4lUtil::ZZType::mmee) {  
+   Z1mm.dump(os);
+   Z2ee.dump(os);
+ } else if(flavour == HZZ4lUtil::ZZType::eemm) { 
+   Z1ee.dump(os);
+   Z2mm.dump(os);
+ }
 }
 
 vhtm::SelectedEvent::SelectedEvent() : 

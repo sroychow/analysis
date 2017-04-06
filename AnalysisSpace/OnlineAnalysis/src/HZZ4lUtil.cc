@@ -10,6 +10,7 @@
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
+
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
 #include "DataFormats/EgammaCandidates/interface/Conversion.h"
 #include "DataFormats/EgammaCandidates/interface/ConversionFwd.h"
@@ -77,10 +78,16 @@ double getEleRhoEffectiveArea(double etax) {
  // void syncDumper(unsigned long int run, unsigned long int lumi, unsigned long int event, const vhtm::ZZcandidate& ZZ, int nJets,
  //		  double jet1Pt, double jet2Pt, const std::map<std::string,double>& kd, const int category, 
  //		  const double m4lrefit, const double m4lrefiterr, const double weight, std::ostream& os) {
-  void syncDumper(unsigned long int run, unsigned long int lumi, unsigned long int event, const vhtm::ZZcandidate& ZZ, std::ostream& os) {
-  //{run}:{lumi}:{event}:{mass4l:.2f}:{mZ1:.2f}:{mZ2:.2f}::{D_bkg^kin:.3f}:{D_bkg:.3f}:{D_gg:.3f}:{Dkin_HJJ^VBF:.3f}:{D_0-:.3f}:{Dkin_HJ^VBF-1:.3f}:    
-  //{Dkin_HJJ^WH-h:.3f}:{Dkin_HJJ^ZH-h:.3f}:{njets30:d}:{jet1pt:.2f}:{jet2pt:.2f}:{jet1qgl:.3f}:{jet2qgl:.3f}:{Dfull_HJJ^VBF:.3f}:{Dfull_HJ^VBF-1:.3f}:
-  //{Dfull_HJJ^WH-h:.3f}:{Dfull_HJJ^ZH-h:.3f}:{category}:{m4lRefit:.2f}:{m4lRefitError:.2f}:{weight:.3f}
+  void syncDumper(unsigned long int run, unsigned long int lumi, unsigned long int event, 
+                  const vhtm::ZZcandidate& ZZ, const std::vector<pat::Jet>& cleanJets, std::ostream& os) {
+  //{run}:{lumi}:{event}:{mass4l:.2f}:{mZ1:.2f}:{mZ2:.2f}::
+  //{D_bkg^kin:.3f}:{D_bkg:.3f}:{D_gg:.3f}:{Dkin_HJJ^VBF:.3f}:{D_0-:.3f}:{Dkin_HJ^VBF-1:.3f}:    
+  //{Dkin_HJJ^WH-h:.3f}:{Dkin_HJJ^ZH-h:.3f}:
+  //{njets30:d}:{jet1pt:.2f}:{jet2pt:.2f}:{jet1qgl:.3f}:{jet2qgl:.3f}:
+  //{Dfull_HJJ^VBF:.3f}:{Dfull_HJ^VBF-1:.3f}:
+  //{Dfull_HJJ^WH-h:.3f}:{Dfull_HJJ^ZH-h:.3f}:
+  //{category}:
+  //{m4lRefit:.2f}:{m4lRefitError:.2f}:{weight:.3f}
     os << std::fixed << std::setprecision(2);
     os << run << ":"
        << lumi << ":"
@@ -89,29 +96,44 @@ double getEleRhoEffectiveArea(double etax) {
        << ZZ.mZ1 << ":"
        << ZZ.mZ2 << ":";
     os << std::fixed << std::setprecision(3);
-    os << ZZ.Dbkgkin() << ":";
+    os << ZZ.kdmap.at("D_bkg_kin") << ":"
+       << ZZ.kdmap.at("D_bkg") << ":"
+       << ZZ.kdmap.at("D_g1g4") << ":"
+       << ZZ.kdmap.at("D_VBF") << ":"
+       << ZZ.kdmap.at("D_g4") << ":"
+       << ZZ.kdmap.at("D_VBF1j") << ":"
+       << ZZ.kdmap.at("D_HadWH") << ":"
+       << ZZ.kdmap.at("D_HadZH") << ":";
+    //printing jet info
+    float j1pt = -1., j2pt = -1.;
+    float j1qg = -1., j2qg = -1.;
+    if(cleanJets.size() == 1) {
+      j1pt = cleanJets.at(0).pt();
+      j1qg = cleanJets.at(0).userFloat("qgLikelihood");
+    }
+    else if(cleanJets.size() >= 2) {
+      j1pt = cleanJets.at(0).pt();
+      j2pt = cleanJets.at(1).pt();
+      j1qg = cleanJets.at(0).userFloat("qgLikelihood");
+      j2qg = cleanJets.at(1).userFloat("qgLikelihood");
+    }
     os << std::fixed << std::setprecision(2);
+    os << cleanJets.size() << ":"
+       << j1pt << ":"
+       << j2pt << ":";
+    os << std::fixed << std::setprecision(3);
+    os << j1qg << ":"
+       << j2qg << ":"
+       << ZZ.kdmap.at("D_VBF2j_QG") << ":"
+       << ZZ.kdmap.at("D_VBF1j_QG") << ":"
+       << ZZ.kdmap.at("D_HadWH_QG") << ":"
+       << ZZ.kdmap.at("D_HadZH_QG") << ":";
+    os << std::fixed << std::setprecision(2);
+    os << -1 << ":"; //this is for category
     os << ZZ.mass4lREFIT() << ":";
     os << ZZ.mass4lErrREFIT() << ":";
-    os << ZZ.flavour;
+    //os << ZZ.flavour;
     os << std::endl;
-    /*
-    os << std::fixed << std::setprecision(3);
-    os << kd.find("D_bkg_kin")->second << ":"
-       << kd.find("D_bkg")->second  << ":"
-       << kd.find("Dgg10_VAMCFM")->second << ":"
-       << kd.find("Djet_VAJHU")->second << ":"
-       << kd.find("D_g4")->second << ":";
-    os << std::fixed << std::setprecision(2);
-    os << nJets <<  ":"
-       << jet1Pt << ":"
-       << jet2Pt << ":"
-       << category << ":"
-       << m4lrefit << ":"
-       << m4lrefiterr << ":"
-       << weight
-       << std::endl;
-    */
   }
   void calcIsoFromPF(const pat::PackedCandidate& v, 
 		     const edm::Handle<pat::PackedCandidateCollection>& pfs, 
@@ -169,5 +191,4 @@ double getEleRhoEffectiveArea(double etax) {
     iso.push_back(pileupSum);
     //std::cout << "Point cEnd" << std::endl;  
   }
-  
 }

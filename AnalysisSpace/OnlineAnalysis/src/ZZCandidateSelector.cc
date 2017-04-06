@@ -2,7 +2,7 @@
 #include <algorithm>
 
 #include "AnalysisSpace/OnlineAnalysis/src/ZZCandidateSelector.h"
-#include "AnalysisSpace/OnlineAnalysis/src/HZZ4lUtil.h"
+
 
 ZZCandidateSelector::ZZCandidateSelector(const bool verbose) {
   verbosity_ = verbose;
@@ -18,7 +18,7 @@ ZZCandidateSelector::~ZZCandidateSelector()
 //
 // member functions
 //
-void ZZCandidateSelector::selectZZcandidates(std::vector<vhtm::Zee>& ZeeVec, std::vector<vhtm::Zmumu>& ZmumuVec) {
+void ZZCandidateSelector::selectZZcandidates(std::vector<vhtm::Zee>& ZeeVec, std::vector<vhtm::Zmumu>& ZmumuVec, std::vector<HZZ4lUtil::zzFail>& zfails) {
   //4e case  
   if( ZeeVec.size() >= 2 ) {
     for(unsigned int i=0; i<ZeeVec.size();i++) {
@@ -26,8 +26,9 @@ void ZZCandidateSelector::selectZZcandidates(std::vector<vhtm::Zee>& ZeeVec, std
       for(unsigned int j=i+1; j<ZeeVec.size();j++) {
         auto& Zj = ZeeVec.at(j);
         int whichZ1;
-        double mass4l = 99999.;
-        if(ZZSelector<vhtm::Zee,vhtm::Zee>(Zi,Zj,whichZ1,mass4l,true) == 0) {
+        double mass4l = 99999.; 
+        int pass = ZZSelector<vhtm::Zee,vhtm::Zee>(Zi,Zj,whichZ1,mass4l,true);
+        if( pass == 0) {
           vhtm::ZZcandidate zztemp;
           zztemp.m4l = mass4l;
           zztemp.flavour = HZZ4lUtil::ZZType::eeee; 
@@ -48,6 +49,13 @@ void ZZCandidateSelector::selectZZcandidates(std::vector<vhtm::Zee>& ZeeVec, std
           } 
           zztemp.setP4Vectors();//very important.used later in KD 
           ZZVec_->push_back(zztemp); 
+        } else {
+          HZZ4lUtil::zzFail tmpFail;
+          tmpFail.flav = HZZ4lUtil::ZZType::eeee;
+          tmpFail.z1idx = i;
+          tmpFail.z1idx = j;
+          tmpFail.fail = pass;
+          zfails.push_back(tmpFail);
         }
       }
     }
@@ -61,7 +69,8 @@ void ZZCandidateSelector::selectZZcandidates(std::vector<vhtm::Zee>& ZeeVec, std
         auto& Zj = ZmumuVec.at(j);
         int whichZ1;
         double mass4l = 99999.;
-        if(ZZSelector<vhtm::Zmumu,vhtm::Zmumu>(Zi,Zj,whichZ1,mass4l,true) == 0) {
+        int pass = ZZSelector<vhtm::Zmumu,vhtm::Zmumu>(Zi,Zj,whichZ1,mass4l,true);
+        if(pass == 0) {
           vhtm::ZZcandidate zztemp;
           zztemp.m4l = mass4l;
           zztemp.flavour = HZZ4lUtil::ZZType::mmmm; 
@@ -82,6 +91,13 @@ void ZZCandidateSelector::selectZZcandidates(std::vector<vhtm::Zee>& ZeeVec, std
           }
           zztemp.setP4Vectors();//very important.used later in KD 
           ZZVec_->push_back(zztemp);  
+        } else {
+          HZZ4lUtil::zzFail tmpFail;
+          tmpFail.flav = HZZ4lUtil::ZZType::mmmm; 
+          tmpFail.z1idx = i;
+          tmpFail.z1idx = j;
+          tmpFail.fail = pass;
+          zfails.push_back(tmpFail);
         }
       }
     }
@@ -95,7 +111,8 @@ void ZZCandidateSelector::selectZZcandidates(std::vector<vhtm::Zee>& ZeeVec, std
         auto& Zj = ZeeVec.at(j);
         int whichZ1;
         double mass4l = 99999.;
-        if(ZZSelector<vhtm::Zmumu,vhtm::Zee>(Zi,Zj,whichZ1,mass4l,false) == 0) {
+        int pass = ZZSelector<vhtm::Zmumu,vhtm::Zee>(Zi,Zj,whichZ1,mass4l,false);
+        if(pass == 0) {
           vhtm::ZZcandidate zztemp;
           zztemp.m4l = mass4l;
           if(whichZ1 == 1) {
@@ -117,6 +134,13 @@ void ZZCandidateSelector::selectZZcandidates(std::vector<vhtm::Zee>& ZeeVec, std
           } 
           zztemp.setP4Vectors();//very important.used later in KD 
           ZZVec_->push_back(zztemp);  
+        }else {
+          HZZ4lUtil::zzFail tmpFail;
+          tmpFail.flav = HZZ4lUtil::ZZType::mmee; 
+          tmpFail.z1idx = i;
+          tmpFail.z1idx = j;
+          tmpFail.fail = pass;
+          zfails.push_back(tmpFail);
         }
       }
     }
@@ -131,16 +155,16 @@ int ZZCandidateSelector::ZZSelector(const T1& Zcand1, const T2& Zcand2, int& whi
   if(!zzm)  return 1;
 
   //ΔR(eta,phi)>0.02 between each of the four leptons (to remove ghosts) 
-  TLorentzVector z1l1P4 = HZZ4lUtil::getP4(Zcand1.lep1);
-  TLorentzVector z1l2P4 = HZZ4lUtil::getP4(Zcand1.lep2);
-  TLorentzVector z2l1P4 = HZZ4lUtil::getP4(Zcand2.lep1);
-  TLorentzVector z2l2P4 = HZZ4lUtil::getP4(Zcand2.lep2);
-  double dra1a2 = z1l1P4.DeltaR(z1l2P4);
-  double drb1b2 = z2l1P4.DeltaR(z2l2P4);  
-  double dra1b1 = z1l1P4.DeltaR(z2l1P4);
-  double dra1b2 = z1l1P4.DeltaR(z2l2P4);
-  double dra2b1 = z1l2P4.DeltaR(z2l1P4);
-  double dra2b2 = z1l2P4.DeltaR(z2l2P4);
+  TLorentzVector z1l1P4 = HZZ4lUtil::getP4(Zcand1.lep1);//11
+  TLorentzVector z1l2P4 = HZZ4lUtil::getP4(Zcand1.lep2);//12
+  TLorentzVector z2l1P4 = HZZ4lUtil::getP4(Zcand2.lep1);//21
+  TLorentzVector z2l2P4 = HZZ4lUtil::getP4(Zcand2.lep2);//22
+  double dra1a2 = z1l1P4.DeltaR(z1l2P4);//11vs12
+  double drb1b2 = z2l1P4.DeltaR(z2l2P4);//21vs22  
+  double dra1b1 = z1l1P4.DeltaR(z2l1P4);//11vs21
+  double dra1b2 = z1l1P4.DeltaR(z2l2P4);//11vs22
+  double dra2b1 = z1l2P4.DeltaR(z2l1P4);//12vs21
+  double dra2b2 = z1l2P4.DeltaR(z2l2P4);//12vs22
   bool dRlep = dra1a2 > 0.02 && 
                drb1b2 > 0.02 && 
                dra1b1 > 0.02 && 
@@ -164,7 +188,7 @@ int ZZCandidateSelector::ZZSelector(const T1& Zcand1, const T2& Zcand2, int& whi
   //(eg from pi0) and so it's safer to keep the cut on m(ll) alone. 
   */
   TLorentzVector ZaP4, ZbP4,ZafsrP4,ZbfsrP4;
-  if (Zcand1.lep1.charge() + Zcand2.lep1.charge() == 0) {
+  if (Zcand1.lep1.charge() + Zcand2.lep1.charge() == 0) {//11 opp to 21; 12 opp to 22;Za = 11 + 21;Zb = 12 + 22;
     ZaP4 = z1l1P4 + z2l1P4;
     if(Zcand1.lep1hasfsr) {
       ZafsrP4 += HZZ4lUtil::getP4(Zcand1.fsrl1);
@@ -184,7 +208,7 @@ int ZZCandidateSelector::ZZSelector(const T1& Zcand1, const T2& Zcand2, int& whi
       z2l2P4 +=  HZZ4lUtil::getP4(Zcand2.fsrl2);
     }
   }
-  else {
+  else {//11 opp to 22; 12 opp to 21;Za = 11 + 22;Zb = 12 + 21;
     ZaP4 = z1l1P4 + z2l2P4;
     if(Zcand1.lep1hasfsr) {
       ZafsrP4 += HZZ4lUtil::getP4(Zcand1.fsrl1);

@@ -5,14 +5,17 @@ triggerFilter = cms.EDFilter("TriggerFilter",
                              l1InputTag = cms.untracked.InputTag('gtDigis'),
                              hltInputTag = cms.untracked.InputTag('TriggerResults','','HLT'),
                              hltPathsOfInterest = cms.vstring ( 
-	# Single Lepton:
-	'HLT_Ele25_eta2p1_WPTight_Gsf_v',
-	'HLT_Ele27_WPTight_Gsf_v',
+        # Single Lepton:
+        'HLT_Ele25_eta2p1_WPTight_Gsf_v',
+        'HLT_Ele27_WPTight_Gsf_v',
         'HLT_Ele27_eta2p1_WPLoose_Gsf_v',
+        'HLT_Ele32_eta2p1_WPTight_Gsf_v',
         'HLT_IsoMu20_v',
         'HLT_IsoTkMu20_v',
         'HLT_IsoMu22_v',
         'HLT_IsoTkMu22_v',
+        'HLT_IsoMu24_v',
+        'HLT_IsoTkMu24_v',
         # Dilepton
         'HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v',
         'HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v',

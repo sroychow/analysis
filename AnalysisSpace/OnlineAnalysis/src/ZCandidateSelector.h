@@ -27,7 +27,8 @@ class ZCandidateSelector {
     void selectZcandidates(const std::vector<vhtm::IsoMuon>& imuons, const std::vector<vhtm::IsoElectron>& ielectrons);
     std::vector<vhtm::Zee>* getZeeVec() { return ZeeVec_; }
     std::vector<vhtm::Zmumu>* getZmumuVec() { return ZmumuVec_; }  
-
+    //alternate implementation
+    void zCandidateSelector(const std::vector<pat::Electron>& tightElelist, const std::vector<pat::Muon>& tightMulist, std::vector<vhtm::Zcandidate>& zcand);
   private:
     bool verbosity_;
     std::vector<vhtm::Zee>* ZeeVec_;

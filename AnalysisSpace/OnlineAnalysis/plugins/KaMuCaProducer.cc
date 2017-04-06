@@ -29,7 +29,6 @@ void
 KaMuCaProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   edm::Handle<pat::MuonCollection> muons;
-  //bool found = 
   iEvent.getByToken(muonToken_, muons);
   std::vector<pat::Muon>*   calibmuons = new std::vector<pat::Muon>();
   for( const auto& mu : *muons ) {

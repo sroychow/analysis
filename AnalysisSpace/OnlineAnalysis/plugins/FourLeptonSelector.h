@@ -80,5 +80,13 @@ class FourLeptonSelector : public edm::one::EDAnalyzer<edm::one::SharedResources
       const edm::EDGetTokenT<pat::PackedCandidateCollection> pfToken_;
       const edm::EDGetTokenT<pat::JetCollection> jetToken_;
       Mela* mela_;
+      //variables for saving in tree if ZZ candidate is found
+      unsigned long int run_;
+      unsigned long int lumi_;
+      unsigned long int event_;
+      bool hasSelectedZZ_;
+      float m4l_;
+      float mZ1_;
+      float mZ2_;
 };
 #endif

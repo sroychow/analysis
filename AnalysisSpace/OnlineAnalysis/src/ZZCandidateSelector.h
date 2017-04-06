@@ -15,6 +15,7 @@
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include "AnalysisSpace/OnlineAnalysis/src/HZZ4lUtil.h"
 //Root
 #include "TLorentzVector.h"
 
@@ -23,7 +24,7 @@ class ZZCandidateSelector {
     ZZCandidateSelector(const bool verbose = false);
     ~ZZCandidateSelector();
     std::vector<vhtm::ZZcandidate>* getZZVec() { return ZZVec_; }
-    void selectZZcandidates(std::vector<vhtm::Zee>&,std::vector<vhtm::Zmumu>&);
+    void selectZZcandidates(std::vector<vhtm::Zee>&,std::vector<vhtm::Zmumu>&, std::vector<HZZ4lUtil::zzFail>&);
     template <typename T1,typename T2>
     int ZZSelector(const T1& Zcand1, const T2& Zcand2, int& whichZ1cand,double& m4l, bool sameFlavour); 
   private:

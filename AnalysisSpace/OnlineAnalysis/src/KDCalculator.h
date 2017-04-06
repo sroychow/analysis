@@ -19,7 +19,8 @@ class KDCalculator {
   public:
     KDCalculator(const bool verbose = false);
     ~KDCalculator();
-    float computeKDforbestZZ(Mela* mela, vhtm::ZZcandidate& zzcand);//std::vector<pat::Jet>& CleanJets);
+    float computeKDforbestZZ(Mela* mela, vhtm::ZZcandidate& zzcand);
+    void computeKDforcategory(Mela* mela, vhtm::ZZcandidate& zzcand, std::vector<pat::Jet>& cleanJets);
     //access functions
     
     float getDVBF2jetsConstant(float ZZMass){

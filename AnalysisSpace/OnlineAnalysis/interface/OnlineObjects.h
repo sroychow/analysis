@@ -50,7 +50,39 @@ class IsoMuon {
     double relIso;
     ClassDef(IsoMuon,1)
 };
-
+//alternative implementation
+class Zcandidate {
+  public:
+    Zcandidate();
+    virtual ~Zcandidate(){}
+    TLorentzVector l1P4;
+    TLorentzVector l2P4;
+    TLorentzVector l1wfsrP4;
+    TLorentzVector l2wfsrP4;
+    int l1charge;  
+    int l2charge;
+    float mass;
+    float zmassdiff;
+    //index of the leptons from tight lepton list
+    int l1idx;
+    int l2idx;
+    int flavour;
+    ClassDef(Zcandidate,1)
+};
+/*
+//alternative implementation
+class ZZcandidate {
+  public:
+    ZZcandidate();
+    virtual ~ZZcandidate(){}
+    //Z1 Z2 will be set according to HZZ selections
+    vhtm::Zcandidate Z1;
+    vhtm::Zcandidate Z2;
+    float mass;
+    int flavour;
+    ClassDef(ZZcandidate,1)
+};
+*/
 class Zmumu {
   public:
     Zmumu();
@@ -65,6 +97,7 @@ class Zmumu {
     double lep2Iso;
     double mass;
     double massdiff;
+    void dump(std::ostream& os = std::cout);
     //reco::RecoCandidate& getlep1();
     //reco::RecoCandidate& getlep2();
     ClassDef(Zmumu,1)
@@ -83,6 +116,7 @@ class Zee {
     double lep2Iso;
     double mass;
     double massdiff;
+    void dump(std::ostream& os = std::cout);
     //reco::RecoCandidate& getlep1();
     //reco::RecoCandidate& getlep2();
     ClassDef(Zee,1)
@@ -118,6 +152,10 @@ class ZZcandidate {
     float D_bkg_kin_;
     double mass4lREFIT_;
     double mass4lErrREFIT_;
+    
+    std::map<std::string,float> kdmap;
+    
+    void dump(std::ostream& os = std::cout);
 
     ClassDef(ZZcandidate,1)
 };

@@ -18,7 +18,7 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 
-
+#include "DataFormats/PatCandidates/interface/Jet.h"
 namespace HZZ4lUtil {
   
   const double MZnominal = 91.1876;
@@ -27,6 +27,21 @@ namespace HZZ4lUtil {
   };
   enum ZZType {
     mmmm = 0, eeee, eemm, mmee, unknown
+  };
+
+  struct zzFail {
+     ZZType flav;
+     int z1idx;
+     int z2idx;
+     int fail;   
+  };
+
+  template <class T>
+    class PtComparatorPAT {
+  public:
+    bool operator()(const T &a, const T &b) const {
+      return a.pt() > b.pt();
+    }
   };
   
   template <class T>
@@ -68,7 +83,10 @@ namespace HZZ4lUtil {
   //void syncDumper(unsigned long int run, unsigned long int lumi, unsigned long int event, const vhtm::ZZcandidate& ZZ, int nJets,
   //		  double jet1Pt, double jet2Pt, const std::map<std::string,double>& kd, const int category, 
   //		  const double m4lrefit, const double m4lrefiterr, const double weight, std::ostream& os);
-  void syncDumper(unsigned long int run, unsigned long int lumi, unsigned long int event, const vhtm::ZZcandidate& ZZ, std::ostream& os);
+  void syncDumper(unsigned long int run, unsigned long int lumi, unsigned long int event, 
+                  const vhtm::ZZcandidate& ZZ, 
+                  const std::vector<pat::Jet>& cleanJets,
+                  std::ostream& os);
 
   void calcIsoFromPF(const pat::PackedCandidate& v, 
                      const edm::Handle<pat::PackedCandidateCollection>& pfs, 
@@ -81,5 +99,16 @@ namespace HZZ4lUtil {
     lv.SetPtEtaPhiE(pf.pt(), pf.eta(), pf.phi(), pf.energy());
     return lv;
   }
+  template<class T>
+    void printP4(const T& pf, std::ostream& os) {
+    os << std::setprecision(3);
+    os << "(" 
+  	 << std::setw(7) << pf.pt()  << "," 
+  	 << std::setw(7) << pf.eta() << "," 
+  	 << std::setw(7) << pf.phi() << "," 
+  	 << std::setw(7) << pf.energy() << ")" 
+  	 << std::endl;
+  }
+
 }
 #endif

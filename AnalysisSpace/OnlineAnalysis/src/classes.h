@@ -35,6 +35,9 @@ namespace {
     edm::Wrapper<vhtm::IsoMuon> wisomu;
     edm::Wrapper<std::vector<vhtm::IsoMuon>> wvisomu;
 
+    //Zcandidate
+    vhtm::Zcandidate  wzcand;
+    std::vector<vhtm::Zcandidate> wvzcand;
     //vhtm::Zee zee;
     //std::vector<vhtm::Zee> vzee;
     edm::Wrapper<vhtm::Zee> wzee;
