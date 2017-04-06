@@ -1,0 +1,69 @@
+#include <iostream>
+#include <algorithm>
+
+#include "TTree.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+
+#include "DataFormats/GeometryVector/interface/GlobalVector.h"
+#include "DataFormats/GeometryVector/interface/GlobalPoint.h"
+
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "DataFormats/PatCandidates/interface/Photon.h"
+#include "DataFormats/EgammaReco/interface/SuperCluster.h"
+#include "DataFormats/EgammaCandidates/interface/Conversion.h"
+#include "DataFormats/EgammaCandidates/interface/ConversionFwd.h"
+
+#include "AnalysisSpace/TreeMaker/plugins/PhotonBlock.h"
+#include "AnalysisSpace/TreeMaker/interface/Utility.h"
+
+// Constructor
+PhotonBlock::PhotonBlock(const edm::ParameterSet& iConfig) :
+  verbosity_(iConfig.getUntrackedParameter<int>("verbosity", 0)),
+  photonTag_(iConfig.getUntrackedParameter<edm::InputTag>("photonSrc")),
+  photonToken_(consumes<pat::PhotonCollection>(photonTag_))
+{}
+void PhotonBlock::beginJob() 
+{
+  // Get TTree pointer
+  std::string tree_name = "vhtree";
+  TTree* tree = vhtm::Utility::getTree(tree_name);
+  list_ = new std::vector<vhtm::Photon>();
+  tree->Branch("Photon", "std::vector<vhtm::Photon>", &list_, 32000, 2);
+  tree->Branch("nPhoton", &fnPhoton_, "fnPhoton_/I");
+}
+void PhotonBlock::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  // Reset the TClonesArray and the nObj variables
+  list_->clear();
+  fnPhoton_ = 0;
+
+  edm::Handle<pat::PhotonCollection> photons;
+  bool found = iEvent.getByToken(photonToken_, photons);
+
+  if (found && photons.isValid()) {
+    edm::LogInfo("PhotonBlock") << "Total # PAT Photons: " << photons->size();
+    std::cout << "Total # PAT Photons: " << photons->size();
+    fnPhoton_ = photons->size();
+    for (pat::Photon const& v: *photons) {
+        vhtm::Photon photon;
+      photon.et     = v.et();
+      photon.eta    = v.eta();
+      photon.clusterEta = v.caloPosition().eta();
+      photon.phi    = v.phi();
+      photon.clusterPhi = v.caloPosition().phi();
+      photon.energy = v.energy();
+      photon.theta  = v.theta();
+      photon.vx     = v.vx();
+      photon.vy     = v.vy();
+      photon.vz     = v.vz();
+      list_->push_back(photon);
+    }
+  }
+  else {
+    edm::LogError("PhotonBlock") << "Error >> Failed to get pat::Photon for label: " 
+                                 << photonTag_;
+  }
+}
+#include "FWCore/Framework/interface/MakerMacros.h"
+DEFINE_FWK_MODULE(PhotonBlock);
+

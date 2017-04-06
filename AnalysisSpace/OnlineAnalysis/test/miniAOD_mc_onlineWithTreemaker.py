@@ -9,8 +9,15 @@ process.load('Configuration.StandardSequences.MagneticField_AutoFromDBCurrent_cf
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 
+process.RandomNumberGeneratorService = cms.Service("RandomNumberGeneratorService",
+    calibratedPatElectrons = cms.PSet(
+        initialSeed = cms.untracked.uint32(123456),
+        engineName = cms.untracked.string('TRandom3')
+    )
+)
+
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(1)
 )
 
 # Input source
@@ -33,7 +40,7 @@ process.selectedPrimaryVertices = cms.EDFilter("VertexSelector",
   filter = cms.bool(True)                                          
 )
 
-###Muon Calibration/Cleaning
+###########################################Muon Calibration/Cleaning######################################
 # Kalman Muon Calibrations
 process.load("AnalysisSpace.OnlineAnalysis.KaMuCaProducer_cfi")
 process.calibratedMuons.muonsCollection = cms.InputTag("slimmedMuons")
@@ -48,56 +55,39 @@ process.gcleanMuons = cms.EDProducer("PATMuonCleanerBySegments",
                                      fractionOfSharedSegments = cms.double(0.499),
                                      )
 
-###Electron Calibration Cleaning, MV ID#####################
-# Electron Smear/Scale
-process.selectedElectrons = cms.EDFilter("PATElectronSelector",
-                                         src = cms.InputTag("slimmedElectrons"),
-                                         cut = cms.string("pt > 5 && abs(eta)<2.5")
-                                         )
-
-process.RandomNumberGeneratorService = cms.Service("RandomNumberGeneratorService",
-    calibratedPatElectrons = cms.PSet(
-        initialSeed = cms.untracked.uint32(123456),
-        engineName = cms.untracked.string('TRandom3')
-    )
+###########################Electron Calibration Cleaning, MV ID, Regression###############################
+##Steps 1. Regression 2. Selected Electrons 3. Calibration 4. Electron MVA
+##########Regression############################################
+from EgammaAnalysis.ElectronTools.regressionWeights_cfi import regressionWeights
+process = regressionWeights(process)
+process.load('EgammaAnalysis.ElectronTools.regressionApplication_cff')
+#########################Electron Skim/Pre-Selection#############
+process.selectedSlimmedElectrons = cms.EDFilter("PATElectronSelector",
+   ## this protects against a crash in electron calibration
+   ## due to electrons with eta > 2.5
+   src = cms.InputTag("slimmedElectrons"),
+   cut = cms.string("pt>5 && abs(eta)<2.5 && abs(-log(tan(superClusterPosition.theta/2.)))<2.5")
 )
-
-process.load('EgammaAnalysis.ElectronTools.calibratedElectronsRun2_cfi')
-
-process.calibratedPatElectrons = cms.EDProducer("CalibratedPatElectronProducerRun2",
-                                        # input collections
-                                        electrons = cms.InputTag('selectedElectrons'),
-                                        gbrForestName = cms.string("gedelectron_p4combination_25ns"),
-                                        isMC = cms.bool(True),
-                                        isSynchronization = cms.bool(True),
-                                        correctionFile = cms.string("EgammaAnalysis/ElectronTools/data/ScalesSmearings/80X_Golden22June_approval")
-                                        )
+##########################Electron Smear/Scale####################
+process.load('EgammaAnalysis.ElectronTools.calibratedPatElectronsRun2_cfi')
+process.calibratedPatElectrons.isMC = cms.bool(True)
+process.calibratedPatElectrons.isSynchronization = cms.bool(True)
+process.calibratedPatElectrons.electrons = cms.InputTag('selectedSlimmedElectrons')
+process.calibratedPatElectrons.correctionFile = cms.string("EgammaAnalysis/ElectronTools/data/ScalesSmearings/Moriond17_23Jan_ele")
+######################MVA id#####################################
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
 
 # turn on VID producer, indicate data format  to be
 # DataFormat.AOD or DataFormat.MiniAOD, as appropriate 
-fileFormat = 'miniAOD'
-
-if fileFormat == 'AOD' :
-    dataFormat = DataFormat.AOD
-else :
-    dataFormat = DataFormat.MiniAOD
-
-switchOnVIDElectronIdProducer(process, dataFormat)
-
-
+switchOnVIDElectronIdProducer(process, DataFormat.MiniAOD)
 # define which IDs we want to produce
-my_id_modules = [
-                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_V1_cff',
-                ]
-
+my_id_modules = [ 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_HZZ_V1_cff' ]
 #add them to the VID producer
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag("calibratedPatElectrons")
 
-
-###Jet part####
+######################################Jet part########################################################
 ## Sequence : 1. JEC 2. QGtagger 3. Producer with QG+JER from JEC applied jets
 ##############
 #############################################################################
@@ -148,7 +138,7 @@ process.skimmedJetswqg.jetSrc = cms.InputTag('patJetsReapplyJEC')
 
 ##############################################################################
 #---------------------------------------------------------------------------
-# Analysis Tree Specific
+# Online Analysis Specific
 #---------------------------------------------------------------------------
 process.load("AnalysisSpace.OnlineAnalysis.TriggerFilter_cfi")
 process.load("AnalysisSpace.OnlineAnalysis.FourLeptonSelector_cfi")
@@ -159,18 +149,27 @@ process.eleMVAproducer.electronSrc = cms.InputTag('calibratedPatElectrons')
 #process.eleMVAproducer.electronSrc = cms.InputTag('calibratedPatElectrons')
 process.fourleptonSelector.muonSrc = cms.InputTag('gcleanMuons') 
 process.fourleptonSelector.electronSrc = cms.InputTag('eleMVAproducer')
+process.fourleptonSelector.jetSrc = cms.InputTag('skimmedJetswqg')
 
 
 process.TFileService = cms.Service("TFileService",
   fileName = cms.string('test.root')
 )
 
+#--------------------------------------------------
+# TreeMaker Specific
+#--------------------------------------------------
+process.load("AnalysisSpace.TreeMaker.TreeCreator_cfi")
+process.load("AnalysisSpace.TreeMaker.TreeWriter_cfi")
+process.load("AnalysisSpace.TreeMaker.TreeContentConfig_bx25_cff")
+process.electronBlock.electronSrc = cms.untracked.InputTag('eleMVAproducer')
 
 process.p = cms.Path(process.triggerFilter
  	             * process.selectedPrimaryVertices
                      * process.calibratedMuons
                      * process.gcleanMuons
-                     * process.selectedElectrons
+                     * process.regressionApplication
+                     * process.selectedSlimmedElectrons
                      * process.calibratedPatElectrons
                      * process.electronMVAValueMapProducer
                      * process.eleMVAproducer
@@ -178,5 +177,10 @@ process.p = cms.Path(process.triggerFilter
                      * process.patJetsReapplyJEC
                      * process.QGTagger
                      * process.skimmedJetswqg
+                     * process.treeCreator
+                     * process.treeCreatorOnline
                      * process.fourleptonSelector
+                     * process.treeContentSequence
+                     * process.treeWriter
+                     * process.treeWriterOnline
 )
