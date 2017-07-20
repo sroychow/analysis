@@ -1,0 +1,26 @@
+git cms-init
+
+# Preliminary electron scale and smearing corrections according to https://twiki.cern.ch/twiki/bin/view/CMS/EGMSmearer
+git cms-merge-topic rafaellopesdesa:EgammaAnalysis80_EGMSmearer_Moriond17_23Jan
+
+git cms-addpkg EgammaAnalysis/ElectronTools
+(cd EgammaAnalysis/ElectronTools/data ; git clone -b master https://github.com/ECALELFS/ScalesSmearings.git ; cd ScalesSmearings ; git checkout tags/Moriond17_23Jan_v1)
+
+#MET recipe according to https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETUncertaintyPrescription
+git cms-merge-topic cms-met:METRecipe_8020_for80Xintegration
+
+#MELA
+git clone https://github.com/cms-analysis/HiggsAnalysis-ZZMatrixElement.git ZZMatrixElement
+(cd ZZMatrixElement; git checkout -b from-v206 v2.0.6;. setup.sh -j 12)
+
+#kinematic refitting
+#git clone https://github.com/VBF-HZZ/KinZfitter.git
+git clone https://github.com/mhl0116/KinZfitter-1.git KinZfitter
+(cd KinZfitter ; git checkout -b from-27daebb 27daebb)
+
+#muon momentum scale corrections (76X)
+git clone https://github.com/bachtis/Analysis.git -b KaMuCa_V4 KaMuCa 
+
+#TreeMaker
+git clone git@github.com:sroychow/analysis.git
+
