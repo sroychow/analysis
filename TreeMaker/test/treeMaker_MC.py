@@ -141,7 +141,31 @@ process.QGTagger.jetsLabel = cms.string('QGL_AK4PFchs')
 ###########JER + QG producer#######
 process.load("AnalysisSpace.OnlineAnalysis.JetQGtaggProducer_cfi")
 process.skimmedJetswqg.jetSrc = cms.InputTag('patJetsReapplyJEC')
+#########################MET###################################
+from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
 
+# If you only want to re-correct and get the proper uncertainties
+runMetCorAndUncFromMiniAOD(process,
+                           isData=True,#(or False),
+                           )
+"""
+# If you would like to re-cluster and get the proper uncertainties
+runMetCorAndUncFromMiniAOD(process,
+                           isData=True, # or False),
+                           pfCandColl=cms.InputTag("packedPFCandidates"),
+                           recoMetFromPFCs=True,
+                           )
+
+# If you would like to re-cluster both jets and met and get the proper uncertainties
+runMetCorAndUncFromMiniAOD(process,
+                           isData=True,#(or False),
+                           pfCandColl=cms.InputTag("packedPFCandidates"),
+                           recoMetFromPFCs=True,
+                           CHS = True, #This is an important step and determines what type of jets to be reclustered
+                           reclusterJets = True
+                           )
+"""
+######################MET###############################################
 ##############################################################################
 #---------------------------------------------------------------------------
 # Trigger filter and EleMVaId producer from Online
@@ -162,8 +186,8 @@ process.electronBlock.electronSrc = cms.InputTag('eleMVAproducer')
 
 
 process.TFileService = cms.Service("TFileService",
-  fileName = cms.string('test.root')
-)
+                                   fileName = cms.string('test.root')
+                                   )
 
 
 process.p = cms.Path(process.triggerFilter
@@ -179,7 +203,8 @@ process.p = cms.Path(process.triggerFilter
                      * process.patJetsReapplyJEC
                      * process.QGTagger
                      * process.skimmedJetswqg
+                     * process.fullPatMetSequence
                      * process.treeCreator
                      * process.treeContentSequence
                      * process.treeWriter
-)
+                     )
