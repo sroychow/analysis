@@ -35,8 +35,6 @@ ElectronMVAIdProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   // Get MVA values and categories (optional)
   edm::Handle<edm::ValueMap<float> > mvaValues;
   iEvent.getByToken(mvaValuesMapToken_,mvaValues);
-  //edm::Handle<edm::ValueMap<int> > mvaCategories;
-  //iEvent.getByToken(mvaCategoriesMapToken_,mvaCategories);
 
   //output electrons
   //std::vector<pat::Electron>* outelectrons = new std::vector<pat::Electron>();

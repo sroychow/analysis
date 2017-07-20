@@ -6,6 +6,7 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/RecoCandidate/interface/RecoCandidate.h"
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "TLorentzVector.h"
@@ -256,7 +257,7 @@ class ZtnP : public TObject {
   float         TnP_l2_p4WithFSR_mass;   //[nTnP]
   ClassDef(ZtnP,1)
 };
-
+/*
 class SelectedObjects : public TObject {
   public :
     SelectedObjects();
@@ -295,5 +296,6 @@ class SelectedObjects : public TObject {
 
     ClassDef(SelectedObjects,1)
 };
+*/
 }
 #endif

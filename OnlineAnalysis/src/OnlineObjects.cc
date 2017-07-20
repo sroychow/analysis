@@ -263,7 +263,7 @@ vhtm::ZtnP::ZtnP()
 {
 
 }
-
+/*
 vhtm::SelectedObjects::SelectedObjects() {
     looseMulist_ = new std::vector<pat::Muon>();
     looseMuSIPlist_ = new std::vector<pat::Muon>();
@@ -278,7 +278,7 @@ vhtm::SelectedObjects::SelectedObjects() {
     tightSIPMuFSRpairVec_ = new std::vector< std::pair< pat::Muon, std::vector<pat::PackedCandidate> >>();
     tightIsoEleFSRpairVec_ = new std::vector<vhtm::IsoElectron>();
     tightIsoMuFSRpairVec_ = new std::vector<vhtm::IsoMuon>();
-    selectedIsoObjectsP4_ = new selectedIsoObjectsP4_();//p4 of selected iso objects + fsr
+    selectedIsoObjectsP4_ = new std::vector<TLorentzVector>();//p4 of selected iso objects + fsr
     looseJetVec_ = new std::vector<pat::Jet>();
 }
 vhtm::SelectedObjects::~SelectedObjects() {
@@ -298,3 +298,4 @@ vhtm::SelectedObjects::~SelectedObjects() {
     delete selectedIsoObjectsP4_;
     delete looseJetVec_;
 }
+*/
